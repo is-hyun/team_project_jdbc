@@ -8,11 +8,11 @@ import lombok.*;
 @Builder
 @ToString
 public class Lectures {
-    int id;
-    String lectureCode;
-    String lectureName;
-    String professor;
-    int credit;
-    int capacity;
-    boolean available;
+    private int id;
+    private String lectureCode;
+    private String lectureName;
+    private String professor;
+    private int credit;
+    private int capacity;
+    private boolean available;
 }
