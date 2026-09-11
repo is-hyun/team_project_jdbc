@@ -33,7 +33,46 @@ public class LecturesDAO {
         return lecturesList;
     }
 
-    // 강의
+    // 강의 검색 (강의코드, *강의명, 교수)
+    public List<Lectures> searchLectures(String keyword) {
+        List<Lectures> lecturesList = new ArrayList<>();
+        // 1. 기본 sql 구조
+        String searchsql = """
+                SELECT * FROM lectures
+                WHERE 1 = 1
+                """;
+        // 2. 검색 조건별 분기 (공란 / 카테고리별)
+        boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
+        if (hasKeyword) {
+            searchsql += """
+                    AND (lecture_code LIKE ? OR lecture_name LIKE ? OR professor LIKE ?)
+                    """;
+        }
+        // TODO - 검색어 없는 경우 / 공백 >> SERVICE에서 처리
+
+        // 3. 실행
+        try (Connection connect = DatabaseUtil.getConnection()) {
+            try (PreparedStatement pstmt = connect.prepareStatement(searchsql)) {
+                if (hasKeyword) {
+                    pstmt.setString(1, "%" + keyword + "%");
+                    pstmt.setString(2, "%" + keyword + "%");
+                    pstmt.setString(3, "%" + keyword + "%");
+                }
+                try (ResultSet srs = pstmt.executeQuery()) {
+                    while (srs.next()) {
+                        lecturesList.add(createLectures(srs));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        if (lecturesList.isEmpty()) {
+            System.out.println("검색 결과가 없습니다");
+        }
+
+        return lecturesList;
+    }
 
     // 강의 정보 신규 등록
     public int addLectures(Lectures lectures) {
@@ -63,8 +102,6 @@ public class LecturesDAO {
         return rows;
     }
 
-
-
     // 메서드 추출
     private static Lectures createLectures(ResultSet rs) throws SQLException {
         Lectures lectures = new Lectures();
@@ -81,7 +118,8 @@ public class LecturesDAO {
     // TODO - 테스트 삭제 필수!!!
 //    public static void main(String[] args) {
 //        LecturesDAO dao = new LecturesDAO();
-//
+
+        // 전체 조회 테스트
 //        try {
 //            List<Lectures> lectures = dao.getAllLectures();
 //
@@ -93,6 +131,14 @@ public class LecturesDAO {
 //            System.err.println("테스트 중 오류 발생:");
 //            e.printStackTrace();
 //        }
-//    }
 
+        // 검색 기능 테스트
+//        System.out.println("========");
+//        String keyword1 = "";
+//        List<Lectures> result1 = dao.searchLectures(keyword1);
+//        System.out.println("검색된 강의 수: " + result1.size() + "건\n");
+//        for (int i = 0; i < result1.size(); i++) {
+//            System.out.println(result1.get(i).toString());
+//        }
+//    }
 }
