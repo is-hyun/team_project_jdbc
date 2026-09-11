@@ -53,7 +53,7 @@ team_project_jdbc/
 | `name` | VARCHAR | - | 이름 |
 | `phone` | VARCHAR | - | 연락처 |
 | `major` | VARCHAR | - | 전공 |
-| `grade` | VARCHAR | - | 학년 / 성적 |
+| `grade` | INT | - | 학년 / 성적 |
 | `admin` | BOOLEAN | - | 관리자 여부 |
 
 ### 2. `lectures` (과목)
@@ -71,14 +71,14 @@ team_project_jdbc/
 | `id` | INT | **PK** | 성적 고유 ID |
 | `member_id` | INT | **FK** | 회원 ID (`members.id`) |
 | `lecture_id` | INT | **FK** | 과목 ID (`lectures.id`) |
-| `score` | VARCHAR/FLOAT | - | 성적 |
+| `score` | INT | - | 성적 |
 
 ### 4. `registration` (수강신청)
 | 컬럼명 | 타입 | PK / FK | 설명 |
 | :--- | :---: | :---: | :--- |
 | `id` | INT | **PK** | 수강신청 고유 ID |
-| `member_id` | INT | **FK** | 회원 ID (`members.id`) |
-| `lecture_id` | INT | **FK** | 강의 ID (`lectures.id`) |
+| `member_id` | VARCHAR | **FK** | 회원 ID (`members.id`) |
+| `lecture_id` | VARCHAR | **FK** | 강의 ID (`lectures.id`) |
 
 ## 🏷️ Connection Info
 
