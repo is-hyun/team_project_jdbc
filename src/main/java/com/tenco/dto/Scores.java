@@ -8,8 +8,10 @@ import lombok.*;
 @Builder
 @ToString
 public class Scores {
-    int id;
-    int memberId;
-    int lectureId;
-    int score;
+    private int id;
+    private String memberId;
+    private String name;
+    private String lectureId;
+    private String lectureName;
+    private int score;
 }
