@@ -1,16 +1,14 @@
 package com.tenco.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Data //getter setter 모두 포함
 @Builder
+@ToString
 public class Registration {
     int id;
-    String memberId;
-    String lectureId;
+    int memberId;
+    int lectureId;
 }

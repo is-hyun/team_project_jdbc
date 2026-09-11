@@ -1,19 +1,18 @@
 package com.tenco.dto;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Data //getter setter 모두 포함
+@Data
 @Builder
-@ToString
-public class Members {
+public class SearchMembersByIdDTO {
     int id;
-    String memberId;
-    String password;
     String name;
     String phone;
     String major;
     int grade;
-    boolean admin;
 }

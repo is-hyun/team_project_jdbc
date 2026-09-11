@@ -7,11 +7,9 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 public class DatabaseUtil {
-
-    private static final String URL =
-            "jdbc:mysql://192.168.5.16:3306/project_team1?serverTimezone=Asia/Seoul";
-    private static final String PJ_USER = "team1";
-    private static final String PJ_PASSWORD = "pj1234";
+    private static final String URL = "jdbc:mysql://192.168.5.16:3306/project_team1?serverTimezone=Asia/Seoul";
+    private static final String DB_USER = System.getenv("PJ_USER");
+    private static final String DB_PASSWORD = System.getenv("PJ_PASSWORD");
     private static final HikariDataSource DATA_SOURCE;
 
     static {
