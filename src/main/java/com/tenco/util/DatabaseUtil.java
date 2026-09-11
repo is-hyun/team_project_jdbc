@@ -16,8 +16,8 @@ public class DatabaseUtil {
         HikariConfig config = new HikariConfig();
 
         config.setJdbcUrl(URL);
-        config.setUsername(PJ_USER);
-        config.setPassword(PJ_PASSWORD);
+        config.setUsername(DB_USER);
+        config.setPassword(DB_PASSWORD);
 
         config.setMaximumPoolSize(10);
         config.setMinimumIdle(5);
