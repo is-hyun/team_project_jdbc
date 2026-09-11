@@ -64,6 +64,8 @@ team_project_jdbc/
 | `lecture_name` | VARCHAR | - | 과목명 |
 | `professor` | VARCHAR | - | 담당교수 |
 | `credit` | INT | - | 학점 |
+| `capacity` | INT | - | 정원 |
+| `available` | BOOLEAN | - | 수강신청 가능 여부 |
 
 ### 3. `scores` (성적)
 | 컬럼명 | 타입 | PK / FK | 설명 |
@@ -77,8 +79,8 @@ team_project_jdbc/
 | 컬럼명 | 타입 | PK / FK | 설명 |
 | :--- | :---: | :---: | :--- |
 | `id` | INT | **PK** | 수강신청 고유 ID |
-| `member_id` | VARCHAR | **FK** | 회원 ID (`members.id`) |
-| `lecture_id` | VARCHAR | **FK** | 강의 ID (`lectures.id`) |
+| `member_id` | INT | **FK** | 회원 ID (`members.id`) |
+| `lecture_id` | INT | **FK** | 강의 ID (`lectures.id`) |
 
 ## 🏷️ Connection Info
 
