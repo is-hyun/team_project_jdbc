@@ -1,0 +1,40 @@
+package com.tenco.util;
+
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+
+public class DatabaseUtil {
+
+    private static final String URL = "jdbc:mysql://localhost:3306/library?serverTimezone=Asia/Seoul";
+    private static final String DB_USER = System.getenv("DB_USER");
+    private static final String DB_PASSWORD = System.getenv("DB_PASSWORD");
+    private static final HikariDataSource DATA_SOURCE;
+
+    static {
+        HikariConfig config = new HikariConfig();
+
+        config.setJdbcUrl(URL);
+        config.setUsername(DB_USER);
+        config.setPassword(DB_PASSWORD);
+
+        config.setMaximumPoolSize(10);
+        config.setMinimumIdle(5);
+
+        config.setConnectionTimeout(3000);
+
+        DATA_SOURCE = new HikariDataSource(config);
+    }
+
+    public static Connection getConnection() throws SQLException {
+        return DATA_SOURCE.getConnection();
+    }
+
+    public static void close(){
+        if (!DATA_SOURCE.isClosed()){
+            DATA_SOURCE.close();
+        }
+    }
+}
