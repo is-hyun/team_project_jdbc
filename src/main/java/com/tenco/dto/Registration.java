@@ -11,6 +11,6 @@ import lombok.NoArgsConstructor;
 @Builder
 public class Registration {
     int id;
-    String memberId;
-    String lectureId;
+    int memberId;
+    int lectureId;
 }
