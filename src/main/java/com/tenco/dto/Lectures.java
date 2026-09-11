@@ -15,4 +15,6 @@ public class Lectures {
     String lectureName;
     String professor;
     int credit;
+    int capacity;
+    boolean available;
 }

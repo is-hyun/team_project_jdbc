@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class Scores {
     int id;
-    String memberId;
-    String lectureId;
+    int memberId;
+    int lectureId;
     int score;
 }
