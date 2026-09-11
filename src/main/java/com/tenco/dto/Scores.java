@@ -9,9 +9,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data //getter setter 모두 포함
 @Builder
-public class Scores {
-    int id;
-    String memberId;
-    String lectureId;
-    int score;
+public class Score {
+    private int id;
+    private String memberId;
+    private String name;
+    private String lectureId;
+    private String lectureName;
+    private int score;
 }
