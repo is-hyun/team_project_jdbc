@@ -4,12 +4,11 @@ import com.tenco.dao.LecturesDAO;
 import com.tenco.dao.MembersDAO;
 import com.tenco.dao.ScoreDAO;
 import com.tenco.dto.Lectures;
-import com.tenco.dto.Registration;
 
 import java.sql.SQLException;
 import java.util.List;
 
-public class Service {
+public class LecturesService {
 
     private final LecturesDAO lecturesDAO = new LecturesDAO();
     private final MembersDAO membersDAO = new MembersDAO();
