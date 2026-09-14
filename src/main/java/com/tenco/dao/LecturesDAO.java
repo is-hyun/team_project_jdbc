@@ -48,7 +48,6 @@ public class LecturesDAO {
                     AND (lecture_code LIKE ? OR lecture_name LIKE ? OR professor LIKE ?)
                     """;
         }
-        // TODO - 검색어 없는 경우 / 공백 >> SERVICE에서 처리
 
         // 3. 실행
         try (Connection connect = DatabaseUtil.getConnection()) {
@@ -78,7 +77,7 @@ public class LecturesDAO {
     public int addLectures(Lectures lectures) {
         int rows = 0;
         String addsql = """
-                INSERT INTO lectures(lecture_code, lecture_name, professor, credit, capacity, avilable)
+                INSERT INTO lectures(lecture_code, lecture_name, professor, credit, capacity, available)
                 VALUES (?, ?, ?, ?, ?, ?)
                 """;
         try (Connection connect = DatabaseUtil.getConnection()) {
@@ -94,12 +93,121 @@ public class LecturesDAO {
                 pstmt.setInt(4, lectures.getCredit());
                 pstmt.setInt(5, lectures.getCapacity());
                 pstmt.setBoolean(6, lectures.isAvailable());
+                rows = pstmt.executeUpdate();
                 System.out.println("신규 강의 정보가 " + rows + " 건 추가되었습니다.");
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
         return rows;
+    }
+
+    // 강의 정보 수정
+    public int updateLecture(Lectures lectures) {
+        int rows = 0;
+        String updatesql = """
+                UPDATE lectures
+                SET lecture_code = ?, lecture_name = ?, professor = ?, credit = ?, capacity = ?, available = ?
+                WHERE id = ?
+                """;
+
+        try (Connection connect = DatabaseUtil.getConnection()) {
+            try (PreparedStatement pstmt = connect.prepareStatement(updatesql)) {
+                pstmt.setString(1, lectures.getLectureCode());
+                pstmt.setString(2, lectures.getLectureName());
+                pstmt.setString(3, lectures.getProfessor());
+                pstmt.setInt(4, lectures.getCredit());
+                pstmt.setInt(5, lectures.getCapacity());
+                pstmt.setBoolean(6, lectures.isAvailable());
+                pstmt.setInt(7, lectures.getId());
+                rows = pstmt.executeUpdate();
+                System.out.println("강의 정보가 수정되었습니다 | 강의ID : " + lectures.getId());
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return rows;
+    }
+
+    // 강의 삭제 기능 (관리자)
+    public int deleteLectures(String code) {
+        int rows = 0;
+        String deletesql = """
+                DELETE FROM lectures
+                WHERE lecture_code = ?
+                """;
+
+        try (Connection connect = DatabaseUtil.getConnection()) {
+            try (PreparedStatement pstmt = connect.prepareStatement(deletesql)) {
+                pstmt.setString(1, code);
+                rows = pstmt.executeUpdate();
+            }
+        } catch (SQLException e) {
+            // TODO - 추후 토의 후 수정
+            System.out.println("데이터베이스 제약 조건으로 인해 삭제할 수 없습니다. (수강 중인 학생이 있을 수 있습니다.)");
+        }
+        return rows;
+    }
+
+    // 강의 ID로 단건조회 (내부에서만 사용)
+    public Lectures getLectureById(int id) {
+        String sql = "SELECT * FROM lectures WHERE id = ?";
+
+        try (Connection connect = DatabaseUtil.getConnection()) {
+            try (PreparedStatement pstmt = connect.prepareStatement(sql)) {
+                pstmt.setInt(1, id);
+
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next()) {
+                        return createLectures(rs);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return null;
+    }
+
+    // 강의코드로 단건조회 (내부에서만 사용)
+    public Lectures getLectureByCode(String code) {
+        String sql = "SELECT * FROM lectures WHERE lecture_code = ?";
+
+        try (Connection connect = DatabaseUtil.getConnection()) {
+            try (PreparedStatement pstmt = connect.prepareStatement(sql)) {
+                pstmt.setString(1, code);
+
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next()) {
+                        return createLectures(rs);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return null;
+    }
+
+    // 강의명(전체)로 단건조회 (내부에서만 사용)
+    // !!! 완전히 동일한 강의명이 있다면 먼저 저장된 값이 나옴
+    public Lectures getLectureByFullname(String name) {
+        String sql = "SELECT * FROM lectures WHERE lecture_name = ?";
+
+        try (Connection connect = DatabaseUtil.getConnection()) {
+            try (PreparedStatement pstmt = connect.prepareStatement(sql)) {
+                pstmt.setString(1, name);
+
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next()) {
+                        return createLectures(rs);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return null;
     }
 
     // 메서드 추출
@@ -115,30 +223,4 @@ public class LecturesDAO {
         return lectures;
     }
 
-    // TODO - 테스트 삭제 필수!!!
-//    public static void main(String[] args) {
-//        LecturesDAO dao = new LecturesDAO();
-
-        // 전체 조회 테스트
-//        try {
-//            List<Lectures> lectures = dao.getAllLectures();
-//
-//            System.out.println("=== 전체 강의 목록 조회 결과 (총 " + lectures.size() + "건) ===");
-//            for (int i = 0; i < lectures.size(); i++) {
-//                System.out.println(lectures.get(i).toString());
-//            }
-//        } catch (Exception e) {
-//            System.err.println("테스트 중 오류 발생:");
-//            e.printStackTrace();
-//        }
-
-        // 검색 기능 테스트
-//        System.out.println("========");
-//        String keyword1 = "";
-//        List<Lectures> result1 = dao.searchLectures(keyword1);
-//        System.out.println("검색된 강의 수: " + result1.size() + "건\n");
-//        for (int i = 0; i < result1.size(); i++) {
-//            System.out.println(result1.get(i).toString());
-//        }
-//    }
 }

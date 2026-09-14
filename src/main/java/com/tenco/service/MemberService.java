@@ -8,6 +8,11 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class MemberService {
+    private final MembersDAO membersDAO;
+
+    public MemberService() {
+        this(new MembersDAO());
+    }
 
     /*
     학생 view
@@ -105,4 +110,10 @@ public class MemberService {
         return membersDAO.searchMembersByName(name);
     }
 
+    public Members login(String memberId, String password) {
+        if (memberId == null || memberId.isBlank() || password == null || password.isEmpty()) {
+            throw new IllegalArgumentException("아이디와 비밀번호를 입력하세요.");
+        }
+        return membersDAO.login(memberId.trim(), password);
+    }
 }

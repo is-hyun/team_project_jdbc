@@ -2,6 +2,7 @@ package com.tenco.dao;
 
 import com.tenco.dto.*;
 import com.tenco.util.DatabaseUtil;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -11,6 +12,29 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MembersDAO {
+    public Members login(String memberId, String password) {
+        String sql = "SELECT id, member_id, password, name, admin FROM members WHERE member_id = ?";
+        try (Connection connection = DatabaseUtil.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, memberId);
+            try (ResultSet rs = statement.executeQuery()) {
+                if (rs.next() && memberId.equals(rs.getString("member_id"))
+                        && BCrypt.checkpw(password, rs.getString("password"))) {
+                    // 로그인 상태에는 비밀번호를 보관하지 않는다.
+                    return Members.builder()
+                            .id(rs.getInt("id"))
+                            .memberId(rs.getString("member_id"))
+                            .name(rs.getString("name"))
+                            .admin(rs.getInt("admin") == 1)
+                            .build();
+                }
+            }
+        } catch (SQLException e) {
+            throw new IllegalStateException("로그인 중 DB 오류가 발생했습니다. 연결 및 members 테이블을 확인하세요.", e);
+        }
+        return null;
+    }
+
     //    학적 정보 조회
 //    id(pk)로 조회
     public SearchMembersByIdDTO searchMembersById(int id) {
