@@ -83,7 +83,7 @@ public class LecturesService {
             return false;
         }
 
-        int result = lecturesDAO.deleteLecture(targetCode);
+        int result = lecturesDAO.deleteLectures(targetCode);
         return result > 0;
     }
 }

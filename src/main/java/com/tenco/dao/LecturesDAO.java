@@ -130,7 +130,7 @@ public class LecturesDAO {
     }
 
     // 강의 삭제 기능 (관리자)
-    public int deleteLecture(String code) {
+    public int deleteLectures(String code) {
         int rows = 0;
         String deletesql = """
                 DELETE FROM lectures
