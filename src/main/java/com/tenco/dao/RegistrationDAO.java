@@ -1,5 +1,6 @@
 package com.tenco.dao;
 
+import com.tenco.dto.Members;
 import com.tenco.dto.Registration;
 import com.tenco.util.DatabaseUtil;
 
@@ -87,7 +88,7 @@ public class RegistrationDAO {
         List<Registration> registrationList = new ArrayList<>();
 
         String searchSql = """
-                select id, member_id, lecture_id
+                select id, member_id, lecture_id 
                 from registration 
                 where member_id = ?
                 """;
@@ -115,13 +116,19 @@ public class RegistrationDAO {
 
 
     //전체 조회 (관리자)
-    public List<Registration> getAllRegistrations() {
+    public List<Registration> getAllRegistrations(Members members) {
         List<Registration> registrationList = new ArrayList<>();
 
         String searchAllSql = """
-                select *
-                from registration
+                select r.id, r.member_id, r.lecture_id, m.name as member_name
+                from registration r
+                join members m on r.member_id = m.id
                 """;
+
+        if (members == null || !members.isAdmin()) {
+            System.out.println("관리자만 조회 가능 합니다.");
+            return new ArrayList<>();
+        }
 
         try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(searchAllSql)) {
@@ -132,6 +139,7 @@ public class RegistrationDAO {
                     registrationList.add(Registration.builder()
                             .id(rs.getInt("id"))
                             .memberId(rs.getInt("member_id"))
+                            .memberName(rs.getString("member_name"))
                             .lectureId(rs.getInt("lecture_id"))
                             .build());
                 }
