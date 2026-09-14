@@ -10,7 +10,7 @@ import com.tenco.dto.Scores;
 import java.sql.SQLException;
 import java.util.List;
 
-public class Service {
+public class ScoreService {
 
     private LecturesDAO lecturesDAO = new LecturesDAO();
     private MembersDAO membersDAO = new MembersDAO();
