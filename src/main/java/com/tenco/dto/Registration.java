@@ -14,4 +14,5 @@ public class Registration {
     private int memberId;
     private String memberName;
     private int lectureId;
+
 }
