@@ -48,7 +48,6 @@ public class LecturesDAO {
                     AND (lecture_code LIKE ? OR lecture_name LIKE ? OR professor LIKE ?)
                     """;
         }
-        // TODO - 검색어 없는 경우 / 공백 >> SERVICE에서 처리
 
         // 3. 실행
         try (Connection connect = DatabaseUtil.getConnection()) {
@@ -78,7 +77,7 @@ public class LecturesDAO {
     public int addLectures(Lectures lectures) {
         int rows = 0;
         String addsql = """
-                INSERT INTO lectures(lecture_code, lecture_name, professor, credit, capacity, avilable)
+                INSERT INTO lectures(lecture_code, lecture_name, professor, credit, capacity, available)
                 VALUES (?, ?, ?, ?, ?, ?)
                 """;
         try (Connection connect = DatabaseUtil.getConnection()) {
@@ -94,6 +93,7 @@ public class LecturesDAO {
                 pstmt.setInt(4, lectures.getCredit());
                 pstmt.setInt(5, lectures.getCapacity());
                 pstmt.setBoolean(6, lectures.isAvailable());
+                rows = pstmt.executeUpdate();
                 System.out.println("신규 강의 정보가 " + rows + " 건 추가되었습니다.");
             }
         } catch (SQLException e) {
