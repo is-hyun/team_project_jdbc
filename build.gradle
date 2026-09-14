@@ -9,21 +9,25 @@ repositories {
     mavenCentral()
 }
 
+
 dependencies {
 
     // 커넥션 풀 LIB
     implementation group: 'com.zaxxer', name: 'HikariCP', version: '5.1.0'
-    // 개발 하는 과정에서 로그를 확인하고 싶다면 로그 찍는 라이브러리를 추가할 수 있음  -> slf4j
-    // SLF4J API
+
+    // SLF4J
     implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.17'
-    // [추가] SLF4J 구현체 (Simple Logger)
     implementation group: 'org.slf4j', name: 'slf4j-simple', version: '2.0.17'
 
-    // Source: https://mvnrepository.com/artifact/com.mysql/mysql-connector-j
+    // MySQL
     implementation group: 'com.mysql', name: 'mysql-connector-j', version: '8.4.0'
 
+    // Lombok
     compileOnly 'org.projectlombok:lombok:1.18.46'
     annotationProcessor 'org.projectlombok:lombok:1.18.46'
+
+    testCompileOnly 'org.projectlombok:lombok:1.18.46'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.46'
 
     implementation 'org.mindrot:jbcrypt:0.4'
 
@@ -32,3 +36,6 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
+test {
+    useJUnitPlatform()
+}
