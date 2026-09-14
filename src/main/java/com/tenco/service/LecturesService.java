@@ -71,7 +71,7 @@ public class LecturesService {
     }
 
     // 5. 강의 정보 수정 (관리자)
-    public boolean deleteLecture(String code) {
+    public boolean deleteLectures(String code) {
         if (code == null || code.trim().isEmpty()) {
             return false;
         }
