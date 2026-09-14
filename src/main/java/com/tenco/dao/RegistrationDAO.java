@@ -61,6 +61,7 @@ public class RegistrationDAO {
             try (PreparedStatement overRegPstmt = conn.prepareStatement(overRegSql)) {
 
                 overRegPstmt.setString(1, lecId);
+                overRegPstmt.executeUpdate();
 
             }
             // 5. 2 ~ 4 이 모두 성공하면 commit, 하나라도 실패하면 rollback
