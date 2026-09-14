@@ -32,7 +32,6 @@ public class MembersDAO {
             psmt.setInt(1, id);
             ResultSet rs = psmt.executeQuery();
 
-
             if (rs.next()) {
                 return SearchMembersByIdDTO.builder()
                         .id(rs.getInt("id"))

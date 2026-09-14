@@ -8,7 +8,7 @@ import lombok.*;
 @Builder
 @ToString
 public class Registration {
-    int id;
-    int memberId;
-    int lectureId;
+    private int id;
+    private int memberId;
+    private int lectureId;
 }
