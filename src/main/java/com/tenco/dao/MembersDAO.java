@@ -1,8 +1,6 @@
 package com.tenco.dao;
 
-import com.tenco.dto.Members;
-import com.tenco.dto.SearchAllMembersDTO;
-import com.tenco.dto.SearchMembersByIdDTO;
+import com.tenco.dto.*;
 import com.tenco.util.DatabaseUtil;
 
 import java.sql.Connection;
@@ -14,17 +12,20 @@ import java.util.List;
 
 public class MembersDAO {
     //    학적 정보 조회
-//    로그인 ID, PW를 출력할 수 없기에 따로 SearchMembersByIdDTO를 만들어 사용. (필요한 내용만 전달하도록)
+//    id(pk)로 조회
     public SearchMembersByIdDTO searchMembersById(int id) {
         String sql = """
                 select
-                	id,
-                    name,
-                    phone,
-                    major,
-                    grade
-                from members
-                where id = ?;
+                	m.member_id,
+                    m.name,
+                    m.phone,
+                    m.major,
+                    m.grade,
+                    s.score
+                from members m
+                left join scores s
+                on m.id = s.member_id
+                where m.id = ?;
                 """;
 
         try (Connection connection = DatabaseUtil.getConnection()) {
@@ -34,11 +35,50 @@ public class MembersDAO {
 
             if (rs.next()) {
                 return SearchMembersByIdDTO.builder()
-                        .id(rs.getInt("id"))
+                        .memberId(rs.getString("member_id"))
                         .name(rs.getString("name"))
                         .phone(rs.getString("phone"))
                         .major(rs.getString("major"))
                         .grade(rs.getInt("grade"))
+                        .score(rs.getInt("score"))
+                        .build();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        return null;
+    }
+
+//    memberId 로 조회
+    public SearchMembersByMemberIdDTO searchMembersByMemberId(String memberId) {
+        String sql = """
+                select
+                	m.member_id,
+                    m.name,
+                    m.phone,
+                    m.major,
+                    m.grade,
+                    s.score
+                from members m
+                left join scores s
+                on m.id = s.member_id
+                where m.member_id = ?;
+                """;
+
+        try (Connection connection = DatabaseUtil.getConnection()) {
+            PreparedStatement psmt = connection.prepareStatement(sql);
+            psmt.setString(1, memberId);
+            ResultSet rs = psmt.executeQuery();
+
+            if (rs.next()) {
+                return SearchMembersByMemberIdDTO.builder()
+                        .memberId(rs.getString("member_id"))
+                        .name(rs.getString("name"))
+                        .phone(rs.getString("phone"))
+                        .major(rs.getString("major"))
+                        .grade(rs.getInt("grade"))
+                        .score(rs.getInt("score"))
                         .build();
             }
         } catch (SQLException e) {
@@ -49,7 +89,7 @@ public class MembersDAO {
     }
 
     //    학생 정보 등록 (관리자)
-    private void addMembers(Members members) {
+    public void addMember(Members members) {
         int rows = 0;
         String sql = """
                 insert into
@@ -80,12 +120,15 @@ public class MembersDAO {
         List<SearchAllMembersDTO> membersList = new ArrayList<>();
         String sql = """
                 select
-                	id,
-                    name,
-                    phone,
-                    major,
-                    grade
-                from members;
+                    m.member_id,
+                    m.name,
+                    m.phone,
+                    m.major,
+                    m.grade,
+                    s.score
+                from members m
+                left join scores s
+                on m.id = s.member_id;
                 """;
 
         try (Connection connection = DatabaseUtil.getConnection()) {
@@ -94,11 +137,12 @@ public class MembersDAO {
 
             while (rs.next()) {
                 membersList.add(SearchAllMembersDTO.builder()
-                        .id(rs.getInt("id"))
+                        .memberId(rs.getString("member_id"))
                         .name(rs.getString("name"))
                         .phone(rs.getString("phone"))
                         .major(rs.getString("major"))
                         .grade(rs.getInt("grade"))
+                        .score(rs.getInt("score"))
                         .build());
             }
         } catch (SQLException e) {
@@ -108,21 +152,43 @@ public class MembersDAO {
         return membersList;
     }
 
-    public static void main(String[] args) {
-        MembersDAO membersDAO = new MembersDAO();
-        Members members = new Members();
+    public List<SearchMembersByNameDTO> searchMembersByName(String name) {
+        List<SearchMembersByNameDTO> nameList = new ArrayList<>();
+        String sql = """
+                select
+                	m.member_id,
+                    m.name,
+                    m.phone,
+                    m.major,
+                    m.grade,
+                    s.score
+                from members m
+                left join scores s
+                on m.id = s.member_id
+                where m.name = ?;
+                """;
 
+        try (Connection connection = DatabaseUtil.getConnection()) {
+            PreparedStatement pstmt = connection.prepareStatement(sql);
+            pstmt.setString(1, name);
+            ResultSet rs = pstmt.executeQuery();
 
-//        membersDAO.addMembers(Members.builder()
-//                        .memberId("student11")
-//                        .password("pass123")
-//                        .name("달유메")
-//                        .phone("010-1234-1234")
-//                        .major("컴퓨터공학과")
-//                        .grade(1)
-//                .build());
+            while(rs.next()) {
+                nameList.add(SearchMembersByNameDTO.builder()
+                        .memberId(rs.getString("member_id"))
+                        .name(rs.getString("name"))
+                        .phone(rs.getString("phone"))
+                        .major(rs.getString("major"))
+                        .grade(rs.getInt("grade"))
+                        .score(rs.getInt("score"))
+                        .build()
+                );
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
 
-        System.out.println(membersDAO.searchAllMembers());
-
+        return nameList;
     }
+
 }
