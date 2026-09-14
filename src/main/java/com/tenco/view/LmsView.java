@@ -62,10 +62,8 @@ public class LmsView {
                     }
                     default -> System.out.println("메뉴에 표시된 번호를 입력하세요.");
                 }
-            } catch (RuntimeException e) {
+            } catch (RuntimeException | SQLException e) {
                 System.out.println("오류: " + e.getMessage());
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
             }
         }
     }
@@ -264,7 +262,7 @@ public class LmsView {
 
     // =========================================================
     // 성적 수정
-    // ScoreDAO.updateScore(int memberId, int lectureId, int score) 를 사용한다.
+    // 선택한 학생과 강의의 ID를 객체에 담아 ScoreDAO에 전달한다.
     // =========================================================
     private void updateScore() throws SQLException {
         Integer memberId = findStudentIdByName();
@@ -282,7 +280,10 @@ public class LmsView {
             return;
         }
 
-        scoreDAO.updateScore(memberId, lectureId, score);
+        // 받아온 Integer
+        Members member = Members.builder().id(memberId).build();
+        Lectures lecture = Lectures.builder().id(lectureId).build();
+        scoreDAO.updateScore(member, lecture, score);
         System.out.println("성적이 수정되었습니다.");
     }
 
