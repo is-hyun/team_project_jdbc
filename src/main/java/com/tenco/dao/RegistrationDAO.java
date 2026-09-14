@@ -39,6 +39,19 @@ public class RegistrationDAO {
                 }
             }
 
+            // 학생ID가 존재하는지 확인
+            String memberChkSql = """
+                    SELECT id FROM members WHERE id = ?
+                    """;
+            try (PreparedStatement memberPstmt = conn.prepareStatement(memberChkSql)) {
+                memberPstmt.setString(1, memId);
+                try (ResultSet rs = memberPstmt.executeQuery()) {
+                    if (!rs.next()) {
+                        throw new SQLException("존재하지 않는 회원입니다. 회원ID : " + memId);
+                    }
+                }
+            }
+
             // 3. 수강 신청 -- INSERT
             String regSql = """
                     INSERT INTO registration (member_id, lecture_id)
@@ -89,9 +102,10 @@ public class RegistrationDAO {
         List<Registration> registrationList = new ArrayList<>();
 
         String searchSql = """
-                select id, member_id, lecture_id 
-                from registration 
-                where member_id = ?
+                select r.id, r.member_id, r.lecture_id, m.name
+                from registration r
+                join members m on r.member_id = m.id
+                where r.member_id = ?
                 """;
 
         try (Connection conn = DatabaseUtil.getConnection();
@@ -105,6 +119,7 @@ public class RegistrationDAO {
                             .id(rs.getInt("id"))
                             .memberId(rs.getInt("member_id"))
                             .lectureId(rs.getInt("lecture_id"))
+                            .memberName(rs.getString("name"))
                             .build());
                 }
             }
@@ -153,5 +168,3 @@ public class RegistrationDAO {
     }
 
 }
-
-
