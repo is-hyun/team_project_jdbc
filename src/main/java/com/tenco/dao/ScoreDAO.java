@@ -45,7 +45,7 @@ public class ScoreDAO {
     }
 
     // 본인 성적 조회
-    public List<Scores> getScoresById(String id) {
+    public List<Scores> getScoresById(String memberId) {
         List<Scores> scoreList = new ArrayList<>();
         String sql = """
                 select s.id, m.member_id, m.name, l.lecture_code, l.lecture_name, s.score
@@ -60,7 +60,7 @@ public class ScoreDAO {
         try (Connection connection = DatabaseUtil.getConnection()) {
 
             try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-                pstmt.setString(1, id);
+                pstmt.setString(1, memberId);
                 ResultSet rs = pstmt.executeQuery();
 
                 while (rs.next()) {
@@ -83,7 +83,7 @@ public class ScoreDAO {
     // 3. 찾은 성적을 score로 수정한다 -- update
     // 4. 2 - 3번이 모두 성공하면 commit, 하나라도 실패하면 rollback
     // 5. 자동 커밋을 원래대로 되돌리고 연결을 닫는다
-    public void updateScore(int memberId, int lectureId, int score) throws SQLException{
+    public void updateScore(int memberId, int lectureId, Integer score) throws SQLException{
         Connection conn = null;
 
         try {
@@ -147,7 +147,7 @@ public class ScoreDAO {
     // 3. 입력받은 과목과 동일한 과목이 있는지 검색한다 -- select
     // 4. 위에 입력받은 학생과 과목 아이디로 registration 테이블에 데이터가 있지 않으면
     //      rollback를 한다 -- select
-    // 5. 2 - 3번이 모두 성공하면 commit, 하나라도 실패하면 rollback
+    // 5. 2 - 4번이 모두 성공하면 commit, 하나라도 실패하면 rollback
     // 6. 자동 커밋을 원래대로 되돌리고 연결을 닫는다
 
     // 현재 학생 객체와 과목 객체를 받을 방법이 없음
