@@ -10,9 +10,10 @@ import lombok.NoArgsConstructor;
 @Data
 @Builder
 public class SearchMembersByIdDTO {
-    private int id;
+    private String memberId;
     private String name;
     private String phone;
     private String major;
     private int grade;
+    private Integer score;
 }
