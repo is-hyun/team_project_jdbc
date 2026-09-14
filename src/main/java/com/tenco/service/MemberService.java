@@ -8,12 +8,6 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class MemberService {
-    private final MembersDAO membersDAO;
-
-    public MemberService() {
-        this(new MembersDAO());
-    }
-
     /*
     학생 view
                        둘 중 필요없는건 삭제 예정

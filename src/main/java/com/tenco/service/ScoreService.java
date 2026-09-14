@@ -45,7 +45,7 @@ public class ScoreService {
         // memberId와 lectureName으로 Member, Lectures 객체를 반환한는
         // 메서드 필요
         Members member = new Members();
-        Lectures lecture = new Lectures();
+        Lectures lecture = lecturesDAO.getLectureByFullname(lectureName);
 
         scoreDAO.updateScore(member, lecture, score);
     }
@@ -60,7 +60,7 @@ public class ScoreService {
         // memberId와 lectureName으로 Member, Lectures 객체를 반환한는
         // 메서드 필요
         Members member = new Members();
-        Lectures lecture = new Lectures();
+        Lectures lecture = lecturesDAO.getLectureByFullname(lectureName);
 
         scoreDAO.addScore(member, lecture);
     }
@@ -75,7 +75,7 @@ public class ScoreService {
         // memberId와 lectureName으로 Member, Lectures 객체를 반환한는
         // 메서드 필요
         Members member = new Members();
-        Lectures lecture = new Lectures();
+        Lectures lecture = lecturesDAO.getLectureByFullname(lectureName);
 
         scoreDAO.deleteScore(member, lecture);
     }
