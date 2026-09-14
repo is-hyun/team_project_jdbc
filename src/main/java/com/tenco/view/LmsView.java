@@ -216,11 +216,11 @@ public class LmsView {
 
     private boolean readAvailable(boolean current, boolean allowBlank) {
         while (true) {
-            String input = readText("상태 (1: 개설중, 2: 폐강" + (allowBlank ? ", 엔터: 유지" : "") + "): ");
+            String input = readText("상태 (가능 / 불가능" + (allowBlank ? ", 엔터: 유지" : "") + "): ");
             if (allowBlank && input.isEmpty()) return current;
-            if ("1".equals(input)) return true;
-            if ("2".equals(input)) return false;
-            System.out.println("표시된 번호를 입력해주세요.");
+            if ("가능".equals(input)) return true;
+            if ("불가능".equals(input)) return false;
+            System.out.println("가능 또는 불가능을 입력해주세요.");
         }
     }
 
@@ -267,6 +267,15 @@ public class LmsView {
 
     private void deleteLecture() {
         String code = readText("삭제할 강의코드: ");
+        if (code.isEmpty()) {
+            System.out.println("강의코드를 입력해주세요.");
+            return;
+        }
+        String confirmation = readText("강의 [" + code + "]를 정말 삭제하시겠습니까? (예 / 아니오): ");
+        if (!"예".equals(confirmation)) {
+            System.out.println("강의 삭제를 취소했습니다.");
+            return;
+        }
         System.out.println(lecturesService.deleteLectures(code)
                 ? "강의가 삭제되었습니다." : "강의를 삭제하지 못했습니다.");
     }
