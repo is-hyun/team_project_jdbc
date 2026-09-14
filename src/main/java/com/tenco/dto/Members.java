@@ -8,12 +8,12 @@ import lombok.*;
 @Builder
 @ToString
 public class Members {
-    int id;
-    String memberId;
-    String password;
-    String name;
-    String phone;
-    String major;
-    int grade;
-    boolean admin;
+    private int id;
+    private String memberId;
+    private String password;
+    private String name;
+    private String phone;
+    private String major;
+    private int grade;
+    private boolean admin;
 }

@@ -4,6 +4,7 @@ import com.tenco.dto.Members;
 import com.tenco.dto.SearchAllMembersDTO;
 import com.tenco.dto.SearchMembersByIdDTO;
 import com.tenco.util.DatabaseUtil;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -13,6 +14,29 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MembersDAO {
+    public Members login(String memberId, String password) {
+        String sql = "SELECT id, member_id, password, name, admin FROM members WHERE member_id = ?";
+        try (Connection connection = DatabaseUtil.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, memberId);
+            try (ResultSet rs = statement.executeQuery()) {
+                if (rs.next() && memberId.equals(rs.getString("member_id"))
+                        && BCrypt.checkpw(password, rs.getString("password"))) {
+                    // 로그인 상태에는 비밀번호를 보관하지 않는다.
+                    return Members.builder()
+                            .id(rs.getInt("id"))
+                            .memberId(rs.getString("member_id"))
+                            .name(rs.getString("name"))
+                            .admin(rs.getInt("admin") == 1)
+                            .build();
+                }
+            }
+        } catch (SQLException e) {
+            throw new IllegalStateException("로그인 중 DB 오류가 발생했습니다. 연결 및 members 테이블을 확인하세요.", e);
+        }
+        return null;
+    }
+
     //    학적 정보 조회
 //    로그인 ID, PW를 출력할 수 없기에 따로 SearchMembersByIdDTO를 만들어 사용. (필요한 내용만 전달하도록)
     public SearchMembersByIdDTO searchMembersById(int id) {
@@ -31,7 +55,6 @@ public class MembersDAO {
             PreparedStatement psmt = connection.prepareStatement(sql);
             psmt.setInt(1, id);
             ResultSet rs = psmt.executeQuery();
-
 
             if (rs.next()) {
                 return SearchMembersByIdDTO.builder()
