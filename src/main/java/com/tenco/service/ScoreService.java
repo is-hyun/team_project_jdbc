@@ -10,7 +10,7 @@ import com.tenco.dto.Scores;
 import java.sql.SQLException;
 import java.util.List;
 
-public class Service {
+public class ScoreService {
 
     private LecturesDAO lecturesDAO = new LecturesDAO();
     private MembersDAO membersDAO = new MembersDAO();
@@ -32,22 +32,51 @@ public class Service {
     }
 
     // 성적 수정
-    public void updateScore(String member_name, String lecture_name, Integer score) throws SQLException {
-        if (member_name == null || member_name.trim().isEmpty() ||
-                lecture_name == null || lecture_name.trim().isEmpty()){
-            throw new SQLException("이름과 과목을 입력해주세요!");
+    public void updateScore(String memberName, String lectureName, Integer score) throws SQLException {
+        if (memberName == null || memberName.trim().isEmpty() ||
+                lectureName == null || lectureName.trim().isEmpty()){
+            throw new SQLException("이름과 과목을 제대로 입력해주세요!");
         }
 
-        if (score < 0 || score > 100){
+        if (score == null || score < 0 || score > 100){
             throw new SQLException("성적을 제대로 입력해주세요");
         }
 
+        // memberId와 lectureName으로 Member, Lectures 객체를 반환한는
+        // 메서드 필요
+        Members member = new Members();
+        Lectures lecture = new Lectures();
 
-
+        scoreDAO.updateScore(member, lecture, score);
     }
 
     // 성적 추가
-    public void addScore(String memberId, String lectureName){
+    public void addScore(String member_name, String lectureName) throws SQLException {
+        if (member_name == null || member_name.trim().isEmpty() ||
+                lectureName == null || lectureName.trim().isEmpty()){
+            throw new SQLException("이름과 과목을 제대로 입력해주세요!");
+        }
 
+        // memberId와 lectureName으로 Member, Lectures 객체를 반환한는
+        // 메서드 필요
+        Members member = new Members();
+        Lectures lecture = new Lectures();
+
+        scoreDAO.addScore(member, lecture);
+    }
+
+    // 성적 삭제
+    public void deleteScore(String member_name, String lectureName) throws SQLException {
+        if (member_name == null || member_name.trim().isEmpty() ||
+                lectureName == null || lectureName.trim().isEmpty()){
+            throw new SQLException("이름과 과목을 제대로 입력해주세요!");
+        }
+
+        // memberId와 lectureName으로 Member, Lectures 객체를 반환한는
+        // 메서드 필요
+        Members member = new Members();
+        Lectures lecture = new Lectures();
+
+        scoreDAO.deleteScore(member, lecture);
     }
 }
