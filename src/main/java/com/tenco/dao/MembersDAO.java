@@ -4,6 +4,7 @@ import com.tenco.dto.Members;
 import com.tenco.dto.SearchAllMembersDTO;
 import com.tenco.dto.SearchMembersByIdDTO;
 import com.tenco.util.DatabaseUtil;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -20,7 +21,7 @@ public class MembersDAO {
             statement.setString(1, memberId);
             try (ResultSet rs = statement.executeQuery()) {
                 if (rs.next() && memberId.equals(rs.getString("member_id"))
-                        && password.equals(rs.getString("password"))) {
+                        && BCrypt.checkpw(password, rs.getString("password"))) {
                     // 로그인 상태에는 비밀번호를 보관하지 않는다.
                     return Members.builder()
                             .id(rs.getInt("id"))
