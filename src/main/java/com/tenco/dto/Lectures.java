@@ -1,20 +1,18 @@
 package com.tenco.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Data //getter setter 모두 포함
 @Builder
+@ToString
 public class Lectures {
-    int id;
-    String lectureCode;
-    String lectureName;
-    String professor;
-    int credit;
-    int capacity;
-    boolean available;
+    private int id;
+    private String lectureCode;
+    private String lectureName;
+    private String professor;
+    private int credit;
+    private int capacity;
+    private boolean available;
 }
