@@ -6,9 +6,10 @@ import lombok.*;
 @NoArgsConstructor
 @Data //getter setter 모두 포함
 @Builder
-@ToString
 public class Registration {
-    int id;
-    int memberId;
-    int lectureId;
+    private int id;
+    private int memberId;
+    private String memberName;
+    private int lectureId;
+
 }
