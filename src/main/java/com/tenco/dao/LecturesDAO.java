@@ -130,7 +130,7 @@ public class LecturesDAO {
     }
 
     // 강의 삭제 기능 (관리자)
-    public int deleteLecture(String code) {
+    public int deleteLectures(String code) {
         int rows = 0;
         String deletesql = """
                 DELETE FROM lectures
@@ -176,6 +176,27 @@ public class LecturesDAO {
         try (Connection connect = DatabaseUtil.getConnection()) {
             try (PreparedStatement pstmt = connect.prepareStatement(sql)) {
                 pstmt.setString(1, code);
+
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next()) {
+                        return createLectures(rs);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return null;
+    }
+
+    // 강의명(전체)로 단건조회 (내부에서만 사용)
+    // !!! 완전히 동일한 강의명이 있다면 먼저 저장된 값이 나옴
+    public Lectures getLectureByFullname(String name) {
+        String sql = "SELECT * FROM lectures WHERE lecture_name = ?";
+
+        try (Connection connect = DatabaseUtil.getConnection()) {
+            try (PreparedStatement pstmt = connect.prepareStatement(sql)) {
+                pstmt.setString(1, name);
 
                 try (ResultSet rs = pstmt.executeQuery()) {
                     if (rs.next()) {

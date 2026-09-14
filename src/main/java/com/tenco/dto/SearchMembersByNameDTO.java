@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 @Builder
-public class SearchAllMembersDTO {
+public class SearchMembersByNameDTO {
     private String memberId;
     private String name;
     private String phone;
