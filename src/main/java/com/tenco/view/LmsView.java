@@ -1,11 +1,12 @@
 package com.tenco.view;
 
-import com.tenco.dao.LecturesDAO;
 import com.tenco.dao.MembersDAO;
 import com.tenco.dao.ScoreDAO;
 import com.tenco.dto.Lectures;
 import com.tenco.dto.Members;
 import com.tenco.service.MemberService;
+import com.tenco.service.LecturesService;
+import com.tenco.service.ScoreService;
 import com.tenco.dto.Scores;
 import com.tenco.dto.SearchAllMembersDTO;
 import com.tenco.dto.SearchMembersByIdDTO;
@@ -16,8 +17,11 @@ import java.util.Scanner;
 
 public class LmsView {
 
-    private final LecturesDAO lecturesDAO = new LecturesDAO();
+    private final LecturesService lecturesService = new LecturesService();
+    private final ScoreService scoreService = new ScoreService();
+    // 학생 조회 서비스가 추가되기 전까지 기존 DAO를 사용한다.
     private final MembersDAO membersDAO = new MembersDAO();
+    // ScoreService.updateScore의 학생/강의 조회 구현 전까지 기존 수정 동작을 유지한다.
     private final ScoreDAO scoreDAO = new ScoreDAO();
     private final Scanner scanner = new Scanner(System.in);
     private final MemberService memberService = new MemberService();
@@ -40,19 +44,11 @@ public class LmsView {
             int choice = readInt("선택: ");
 
             try {
-                if (!loggedInMember.isAdmin() && (choice == 3 || choice == 5 || choice == 7)) {
-                    System.out.println("관리자만 사용할 수 있는 메뉴입니다.");
-                    continue;
-                }
                 switch (choice) {
-                    case 1 -> listLectures();   // 강의 목록 조회
-                    case 2 -> searchLectures(); // 강의 검색
-                    case 3 -> listStudents();
-                    case 4 -> searchMember();
-                    case 5 -> listAllScores();
-                    case 6 -> searchMemberScores();
-                    case 7 -> updateScore();
-                    case 8 -> {
+                    case 1 -> lecturesMenu();
+                    case 2 -> scoresMenu();
+                    case 3 -> membersMenu();
+                    case 0 -> {
                         System.out.println("프로그램을 종료합니다.");
                         return;
                     }
@@ -62,7 +58,7 @@ public class LmsView {
                     }
                     default -> System.out.println("메뉴에 표시된 번호를 입력하세요.");
                 }
-            } catch (RuntimeException | SQLException e) {
+            } catch (RuntimeException e) {
                 System.out.println("오류: " + e.getMessage());
             }
         }
@@ -102,27 +98,184 @@ public class LmsView {
     // =========================================================
     private void printMenu() {
         System.out.println("\n=== 학사 관리 시스템 ===");
-        System.out.println("1. 강의 목록 조회");
-        System.out.println("2. 강의 검색");
-        if (loggedInMember.isAdmin()) {
-            System.out.println("3. 학생 목록 조회 (관리자메뉴)");
-            System.out.println("4. 학생 정보 조회 (관리자메뉴)");
-            System.out.println("5. 전체 성적 조회 (관리자메뉴)");
-            System.out.println("6. 학생 성적 조회 (관리자메뉴)");
-            System.out.println("7. 성적 수정 (관리자메뉴)");
-        } else {
-            System.out.println("4. 내 정보 조회");
-            System.out.println("6. 내 성적 조회");
-        }
-        System.out.println("8. 종료");
+        System.out.println("1. 강의 관련 메뉴");
+        System.out.println("2. 성적 관련 메뉴");
+        System.out.println("3. 회원 관련 메뉴");
         System.out.println("9. 로그아웃");
+        System.out.println("0. 종료");
+    }
+
+    private void lecturesMenu() {
+        while (true) {
+            System.out.println("\n=== 강의 관련 메뉴 ===");
+            System.out.println("1. 강의 목록 조회");
+            System.out.println("2. 강의 검색");
+            if (loggedInMember.isAdmin()) {
+                System.out.println("3. 강의 등록");
+                System.out.println("4. 강의 정보 수정");
+                System.out.println("5. 강의 삭제");
+            }
+            System.out.println("0. 이전 메뉴");
+            int choice = readInt("선택: ");
+            if (choice == 0) return;
+            if (choice >= 3 && choice <= 5 && !requireAdmin()) continue;
+            try {
+                switch (choice) {
+                    case 1 -> listLectures();
+                    case 2 -> searchLectures();
+                    case 3 -> addLecture();
+                    case 4 -> updateLecture();
+                    case 5 -> deleteLecture();
+                    default -> System.out.println("메뉴에 표시된 번호를 입력하세요.");
+                }
+            } catch (RuntimeException | SQLException e) {
+                System.out.println("오류: " + e.getMessage());
+            }
+        }
+    }
+
+    private void scoresMenu() {
+        while (true) {
+            System.out.println("\n=== 성적 관련 메뉴 ===");
+            System.out.println(loggedInMember.isAdmin() ? "1. 학생 성적 조회" : "1. 내 성적 조회");
+            if (loggedInMember.isAdmin()) {
+                System.out.println("2. 전체 성적 조회");
+                System.out.println("3. 성적 수정");
+            }
+            System.out.println("0. 이전 메뉴");
+            int choice = readInt("선택: ");
+            if (choice == 0) return;
+            if (choice >= 2 && choice <= 5 && !requireAdmin()) continue;
+            try {
+                switch (choice) {
+                    case 1 -> searchMemberScores();
+                    case 2 -> listAllScores();
+                    case 3 -> updateScore();
+                    // 서비스의 대상 조회 및 DAO의 SQL 실행 구현이 완료되면 연결한다.
+                    case 4, 5 -> System.out.println("아직 사용할 수 없는 기능입니다.");
+                    default -> System.out.println("메뉴에 표시된 번호를 입력하세요.");
+                }
+            } catch (RuntimeException | SQLException e) {
+                System.out.println("오류: " + e.getMessage());
+            }
+        }
+    }
+
+    private void membersMenu() {
+        while (true) {
+            System.out.println("\n=== 회원 관련 메뉴 ===");
+            System.out.println(loggedInMember.isAdmin() ? "1. 학생 정보 조회" : "1. 내 정보 조회");
+            if (loggedInMember.isAdmin()) System.out.println("2. 학생 목록 조회");
+            System.out.println("0. 이전 메뉴");
+            int choice = readInt("선택: ");
+            if (choice == 0) return;
+            if (choice == 2 && !requireAdmin()) continue;
+            try {
+                switch (choice) {
+                    case 1 -> searchMember();
+                    case 2 -> listStudents();
+                    default -> System.out.println("메뉴에 표시된 번호를 입력하세요.");
+                }
+            } catch (RuntimeException e) {
+                System.out.println("오류: " + e.getMessage());
+            }
+        }
+    }
+
+    private boolean requireAdmin() {
+        if (loggedInMember.isAdmin()) return true;
+        System.out.println("관리자만 사용할 수 있는 메뉴입니다.");
+        return false;
+    }
+
+    private String readText(String prompt) {
+        System.out.print(prompt);
+        return scanner.nextLine().trim();
+    }
+
+    private int readPositiveInt(String prompt) {
+        while (true) {
+            int value = readInt(prompt);
+            if (value > 0) return value;
+            System.out.println("1 이상의 숫자를 입력해주세요.");
+        }
+    }
+
+    private int readOptionalPositiveInt(String prompt) {
+        while (true) {
+            String input = readText(prompt);
+            if (input.isEmpty()) return 0;
+            try {
+                int value = Integer.parseInt(input);
+                if (value > 0) return value;
+            } catch (NumberFormatException ignored) {
+            }
+            System.out.println("1 이상의 숫자를 입력하거나 엔터를 눌러주세요.");
+        }
+    }
+
+    private boolean readAvailable(boolean current, boolean allowBlank) {
+        while (true) {
+            String input = readText("상태 (1: 개설중, 2: 폐강" + (allowBlank ? ", 엔터: 유지" : "") + "): ");
+            if (allowBlank && input.isEmpty()) return current;
+            if ("1".equals(input)) return true;
+            if ("2".equals(input)) return false;
+            System.out.println("표시된 번호를 입력해주세요.");
+        }
+    }
+
+    private void addLecture() throws SQLException {
+        Lectures lecture = Lectures.builder()
+                .lectureCode(readText("강의코드: "))
+                .lectureName(readText("강의명: "))
+                .professor(readText("교수명: "))
+                .credit(readPositiveInt("학점: "))
+                .capacity(readPositiveInt("정원: "))
+                .available(readAvailable(true, false))
+                .build();
+        System.out.println(lecturesService.addLectures(lecture)
+                ? "강의가 등록되었습니다." : "강의를 등록하지 못했습니다.");
+    }
+
+    private void updateLecture() throws SQLException {
+        String code = readText("수정할 강의코드: ");
+        Lectures selected = null;
+        for (Lectures lecture : lecturesService.searchLectures(code)) {
+            if (code.equals(lecture.getLectureCode())) {
+                selected = lecture;
+                break;
+            }
+        }
+        if (selected == null) {
+            System.out.println("해당 강의가 없습니다.");
+            return;
+        }
+        System.out.printf("수정 대상: %s (%s)%n", selected.getLectureName(), selected.getLectureCode());
+        System.out.println("변경하지 않을 항목은 엔터를 눌러주세요.");
+        Lectures changes = Lectures.builder()
+                .id(selected.getId())
+                .lectureCode(readText("새 강의코드: "))
+                .lectureName(readText("새 강의명: "))
+                .professor(readText("새 교수명 (삭제/미정 입력 가능): "))
+                .credit(readOptionalPositiveInt("새 학점: "))
+                .capacity(readOptionalPositiveInt("새 정원: "))
+                .available(readAvailable(selected.isAvailable(), true))
+                .build();
+        System.out.println(lecturesService.updateLectures(changes)
+                ? "강의 정보가 수정되었습니다." : "강의 정보를 수정하지 못했습니다.");
+    }
+
+    private void deleteLecture() {
+        String code = readText("삭제할 강의코드: ");
+        System.out.println(lecturesService.deleteLectures(code)
+                ? "강의가 삭제되었습니다." : "강의를 삭제하지 못했습니다.");
     }
 
     // =========================================================
     // 강의 목록 조회
     // =========================================================
-    private void listLectures() {
-        List<Lectures> lectures = lecturesDAO.getAllLectures();
+    private void listLectures() throws SQLException {
+        List<Lectures> lectures = lecturesService.getAllLectures();
         System.out.println("\n=== 강의 목록 ===");
 
         if (lectures.isEmpty()) {
@@ -143,17 +296,12 @@ public class LmsView {
 
     // =========================================================
     // 강의 검색
-    // LecturesDAO.searchLectures(keyword) 를 사용해 키워드로 조회한다.
+    // 검색어 검증과 조회는 LecturesService에 위임한다.
     // =========================================================
-    private void searchLectures() {
+    private void searchLectures() throws SQLException {
         System.out.print("강의명, 강의코드 또는 교수명 입력: ");
         String keyword = scanner.nextLine().trim();
-        if (keyword.isEmpty()) {
-            System.out.println("검색어를 입력해주세요.");
-            return;
-        }
-
-        List<Lectures> lectures = lecturesDAO.searchLectures(keyword);
+        List<Lectures> lectures = lecturesService.searchLectures(keyword);
         System.out.println("\n=== 강의 검색 결과 ===");
         if (lectures.isEmpty()) {
             System.out.println("검색 결과가 없습니다.");
@@ -219,7 +367,7 @@ public class LmsView {
     // 전체 성적 조회
     // =========================================================
     private void listAllScores() {
-        List<Scores> scores = scoreDAO.getAllScores();
+        List<Scores> scores = scoreService.getAllScores();
         System.out.println("\n=== 전체 성적 목록 ===");
 
         if (scores.isEmpty()) {
@@ -237,14 +385,14 @@ public class LmsView {
 
     // =========================================================
     // 학생 성적 조회
-    // ScoreDAO.getScoresById(String id) 를 사용한다.
+    // ScoreService.getScoresById(String id) 를 사용한다.
     // =========================================================
     private void searchMemberScores() {
         Integer memberId = loggedInMember.isAdmin() ? findStudentIdByName() : Integer.valueOf(loggedInMember.getId());
         if (memberId == null) {
             return;
         }
-        List<Scores> scores = scoreDAO.getScoresById(String.valueOf(memberId));
+        List<Scores> scores = scoreService.getScoresById(String.valueOf(memberId));
 
         System.out.println("\n=== 학생 성적 ===");
         if (scores.isEmpty()) {
@@ -305,14 +453,14 @@ public class LmsView {
     }
 
     // 강의명으로 강의에 대한 정보를 검색한다.
-    private Integer findLectureIdByName() {
+    private Integer findLectureIdByName() throws SQLException {
         System.out.print("강의명: ");
         String name = scanner.nextLine().trim();
         if (name.isEmpty()) {
             System.out.println("강의명을 입력해주세요.");
             return null;
         }
-        for (Lectures lecture : lecturesDAO.getAllLectures()) {
+        for (Lectures lecture : lecturesService.searchLectures(name)) {
             if (name.equals(lecture.getLectureName())) {
                 return lecture.getId();
             }

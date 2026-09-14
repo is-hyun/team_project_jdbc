@@ -70,7 +70,7 @@ public class LecturesService {
         return result > 0;
     }
 
-    // 5. 강의 정보 수정 (관리자)
+    // 5. 강의 삭제 (관리자메뉴)
     public boolean deleteLectures(String code) {
         if (code == null || code.trim().isEmpty()) {
             return false;
