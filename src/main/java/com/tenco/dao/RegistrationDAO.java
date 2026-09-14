@@ -39,6 +39,19 @@ public class RegistrationDAO {
                 }
             }
 
+            // 학생ID가 존재하는지 확인
+            String memberChkSql = """
+            SELECT id FROM members WHERE id = ?
+            """;
+            try (PreparedStatement memberPstmt = conn.prepareStatement(memberChkSql)) {
+                memberPstmt.setString(1, memId);
+                try (ResultSet rs = memberPstmt.executeQuery()) {
+                    if (!rs.next()) {
+                        throw new SQLException("존재하지 않는 회원입니다. 회원ID : " + memId);
+                    }
+                }
+            }
+
             // 3. 수강 신청 -- INSERT
             String regSql = """
                     INSERT INTO registration (member_id, lecture_id)
