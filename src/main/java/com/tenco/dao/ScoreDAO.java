@@ -1,5 +1,7 @@
 package com.tenco.dao;
 
+import com.tenco.dto.Lectures;
+import com.tenco.dto.Members;
 import com.tenco.dto.Scores;
 import com.tenco.util.DatabaseUtil;
 
@@ -79,8 +81,8 @@ public class ScoreDAO {
     // 1. DB 연결을 얻고 자동 커밋을 끈다 (트랜잭션 시작)
     // 2. 이 학생의 성적목록을 출력 -- select
     // 3. 찾은 성적을 score로 수정한다 -- update
-    // 5. 2 - 3번이 모두 성공하면 commit, 하나라도 실패하면 rollback
-    // 6. 자동 커밋을 원래대로 되돌리고 연결을 닫는다
+    // 4. 2 - 3번이 모두 성공하면 commit, 하나라도 실패하면 rollback
+    // 5. 자동 커밋을 원래대로 되돌리고 연결을 닫는다
     public void updateScore(int memberId, int lectureId, int score) throws SQLException{
         Connection conn = null;
 
@@ -138,6 +140,38 @@ public class ScoreDAO {
         }
     }
 
+    // 성적 추가
+    // [처리 순서]
+    // 1. DB 연결을 얻고 자동 커밋을 끈다 (트랜잭션 시작)
+    // 2. 입력받은 학생과 동일한 학생 있는지 검색한다 -- select
+    // 3. 입력받은 과목과 동일한 과목이 있는지 검색한다 -- select
+    // 4. 위에 입력받은 학생과 과목 아이디로 registration 테이블에 데이터가 있지 않으면
+    //      rollback를 한다 -- select
+    // 5. 2 - 3번이 모두 성공하면 commit, 하나라도 실패하면 rollback
+    // 6. 자동 커밋을 원래대로 되돌리고 연결을 닫는다
+
+    // 현재 학생 객체와 과목 객체를 받을 방법이 없음
+    public void addScore(Members member, Lectures lecture) throws SQLException {
+
+        try (Connection conn = DatabaseUtil.getConnection()) {
+
+            String sql = """
+                    insert into scores(member_id, lecture_id)
+                    values (?, ?)
+                    """;
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setInt(1, member.getId());
+                pstmt.setInt(2, lecture.getId());
+            }
+
+        } catch (SQLException e){
+            throw new RuntimeException(e);
+        }
+
+    }
+
+
+    // score 객체 생성
     private static Scores createScore(ResultSet rs) throws SQLException {
         Scores scores = Scores.builder()
                 .id(rs.getInt("id"))
