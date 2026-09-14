@@ -115,30 +115,4 @@ public class LecturesDAO {
         return lectures;
     }
 
-    // TODO - 테스트 삭제 필수!!!
-//    public static void main(String[] args) {
-//        LecturesDAO dao = new LecturesDAO();
-
-        // 전체 조회 테스트
-//        try {
-//            List<Lectures> lectures = dao.getAllLectures();
-//
-//            System.out.println("=== 전체 강의 목록 조회 결과 (총 " + lectures.size() + "건) ===");
-//            for (int i = 0; i < lectures.size(); i++) {
-//                System.out.println(lectures.get(i).toString());
-//            }
-//        } catch (Exception e) {
-//            System.err.println("테스트 중 오류 발생:");
-//            e.printStackTrace();
-//        }
-
-        // 검색 기능 테스트
-//        System.out.println("========");
-//        String keyword1 = "";
-//        List<Lectures> result1 = dao.searchLectures(keyword1);
-//        System.out.println("검색된 강의 수: " + result1.size() + "건\n");
-//        for (int i = 0; i < result1.size(); i++) {
-//            System.out.println(result1.get(i).toString());
-//        }
-//    }
 }
