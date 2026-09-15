@@ -4,6 +4,7 @@ import com.tenco.dto.*;
 import com.tenco.util.DatabaseUtil;
 import org.mindrot.jbcrypt.BCrypt;
 
+import java.lang.reflect.Member;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -74,7 +75,7 @@ public class MembersDAO {
         return null;
     }
 
-//    memberId 로 조회
+    //    memberId 로 조회
     public Members searchMembersByMemberId(String memberId) {
         String sql = """
                 select
@@ -176,6 +177,7 @@ public class MembersDAO {
         return membersList;
     }
 
+    //    이름으로 조회 (관리자)
     public List<Members> searchMembersByName(String name) {
         List<Members> nameList = new ArrayList<>();
         String sql = """
@@ -197,7 +199,7 @@ public class MembersDAO {
             pstmt.setString(1, name);
             ResultSet rs = pstmt.executeQuery();
 
-            while(rs.next()) {
+            while (rs.next()) {
                 nameList.add(Members.builder()
                         .memberId(rs.getString("member_id"))
                         .name(rs.getString("name"))
@@ -215,4 +217,133 @@ public class MembersDAO {
         return nameList;
     }
 
+    //    비밀번호 변경 - 학생전용
+    public boolean updateMemberPassword(int id, String newPassword) {
+        String sql = """
+                update members
+                set password = ?
+                where id = ?;
+                """;
+
+        try (Connection connection = DatabaseUtil.getConnection()) {
+            PreparedStatement pstmt = connection.prepareStatement(sql);
+
+            pstmt.setString(1, newPassword);
+            pstmt.setInt(2, id);
+
+            int rows = pstmt.executeUpdate();
+
+            return rows == 1;
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public boolean updateMemberId(int id, String newMemberId) {
+        String sql = """
+                update members
+                set member_id = ?
+                where id = ?;
+                """;
+
+        try (Connection connection = DatabaseUtil.getConnection()) {
+            PreparedStatement pstmt = connection.prepareStatement(sql);
+
+            pstmt.setString(1, newMemberId);
+            pstmt.setInt(2, id);
+
+            int rows = pstmt.executeUpdate();
+
+            return rows == 1;
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public boolean updateMemberName(int id, String newName) {
+        String sql = """
+                update members
+                set name = ?
+                where id = ?;
+                """;
+
+        try (Connection connection = DatabaseUtil.getConnection()) {
+            PreparedStatement pstmt = connection.prepareStatement(sql);
+
+            pstmt.setString(1, newName);
+            pstmt.setInt(2, id);
+
+            int rows = pstmt.executeUpdate();
+
+            return rows == 1;
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public boolean updateMemberPhone(int id, String newPhone) {
+        String sql = """
+                update members
+                set phone = ?
+                where id = ?;
+                """;
+
+        try (Connection connection = DatabaseUtil.getConnection()) {
+            PreparedStatement pstmt = connection.prepareStatement(sql);
+
+            pstmt.setString(1, newPhone);
+            pstmt.setInt(2, id);
+
+            int rows = pstmt.executeUpdate();
+
+            return rows == 1;
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public boolean updateMemberMajor(int id, String newMajor) {
+        String sql = """
+                update members
+                set major = ?
+                where id = ?;
+                """;
+
+        try (Connection connection = DatabaseUtil.getConnection()) {
+            PreparedStatement pstmt = connection.prepareStatement(sql);
+
+            pstmt.setString(1, newMajor);
+            pstmt.setInt(2, id);
+
+            int rows = pstmt.executeUpdate();
+
+            return rows == 1;
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    //    학생 삭제 (관리자)
+    public boolean deleteMember(int id) {
+        String sql = """
+                delete from members
+                where id = ?;
+                """;
+
+        try (Connection connection = DatabaseUtil.getConnection()) {
+            PreparedStatement pstmt = connection.prepareStatement(sql);
+
+            pstmt.setInt(1, id);
+            int rows = pstmt.executeUpdate();
+
+            return rows == 1;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
