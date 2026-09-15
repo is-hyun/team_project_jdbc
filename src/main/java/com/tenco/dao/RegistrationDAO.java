@@ -230,9 +230,10 @@ public class RegistrationDAO {
         List<Registration> registrationList = new ArrayList<>();
 
         String searchAllSql = """
-                select id, r.member_id, m.name, r.lecture_id, l.lecture_name
+                select r.id, r.member_id, m.name, r.lecture_id, l.lecture_name
                 from registration r
                 join members m on r.member_id = m.id
+                join lectures l on r.lecture_id = l.id
                 """;
 
         if (members == null || !members.isAdmin()) {
@@ -255,6 +256,7 @@ public class RegistrationDAO {
                 }
             }
         } catch (SQLException e) {
+            System.err.println("조회실패 : " + e);
         }
 
 
