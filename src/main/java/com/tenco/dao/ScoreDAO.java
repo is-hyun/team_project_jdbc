@@ -152,22 +152,51 @@ public class ScoreDAO {
 
     // 현재 학생 객체와 과목 객체를 받을 방법이 없음
     public void addScore(Members member, Lectures lecture) throws SQLException {
+        Connection conn = null;
 
-        try (Connection conn = DatabaseUtil.getConnection()) {
+        try {
+            conn = DatabaseUtil.getConnection();
 
-            String sql = """
+            conn.setAutoCommit(false);
+
+            String checkSql = """
+                    insert into registration(member_id, lecture_id)
+                    values (?, ?)
+                    """;
+            try (PreparedStatement pstmt = conn.prepareStatement(checkSql)) {
+                pstmt.setInt(1, member.getId());
+                pstmt.setInt(2, lecture.getId());
+
+                ResultSet rs = pstmt.executeQuery();
+
+                if (!rs.next()){
+                    throw new SQLException("해당 과목을 수강하신 기록이 없습니다");
+                }
+            }
+
+            String insertSql = """
                     insert into scores(member_id, lecture_id)
                     values (?, ?)
                     """;
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            try (PreparedStatement pstmt = conn.prepareStatement(insertSql)) {
                 pstmt.setInt(1, member.getId());
                 pstmt.setInt(2, lecture.getId());
+
+                pstmt.executeUpdate();
             }
+            conn.commit();
 
-        } catch (SQLException e){
+        } catch (SQLException e) {
+            if (conn != null){
+                conn.rollback();
+            }
             throw new RuntimeException(e);
+        }finally {
+            if (conn != null) {
+                conn.setAutoCommit(true);
+                conn.close();
+            }
         }
-
     }
 
     // 성적 삭제

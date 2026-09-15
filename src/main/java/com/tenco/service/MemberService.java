@@ -8,6 +8,11 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class MemberService {
+//    private final MembersDAO membersDAO;
+//
+//    public MemberService() {
+//        this(new MembersDAO());
+//    }
 
     /*
     학생 view
@@ -110,12 +115,5 @@ public class MemberService {
             throw new IllegalArgumentException("아이디와 비밀번호를 입력하세요.");
         }
         return membersDAO.login(memberId.trim(), password);
-    }
-
-    public static void main(String[] args) throws SQLException {
-        MemberService memberService = new MemberService();
-
-        System.out.println(memberService.getMembersByName("홍길동"));
-        System.out.println(memberService.getAllMembers().toString());
     }
 }
