@@ -40,7 +40,7 @@ public class MembersDAO {
     public Members searchMembersById(int id) {
         String sql = """
                 select
-                	m.member_id,
+                    m.id, m.member_id,
                     m.name,
                     m.phone,
                     m.major,
@@ -49,7 +49,8 @@ public class MembersDAO {
                 from members m
                 left join scores s
                 on m.id = s.member_id
-                where m.id = ?;
+                where m.id = ?
+                group by m.id, m.member_id, m.name, m.phone, m.major, m.grade;
                 """;
 
         try (Connection connection = DatabaseUtil.getConnection()) {
@@ -59,12 +60,13 @@ public class MembersDAO {
 
             if (rs.next()) {
                 return Members.builder()
+                        .id(rs.getInt("id"))
                         .memberId(rs.getString("member_id"))
                         .name(rs.getString("name"))
                         .phone(rs.getString("phone"))
                         .major(rs.getString("major"))
                         .grade(rs.getInt("grade"))
-                        .score(rs.getInt("score"))
+                        .score(rs.getObject("score") == null ? null : rs.getInt("score"))
                         .build();
             }
         } catch (SQLException e) {
@@ -78,7 +80,7 @@ public class MembersDAO {
     public Members searchMembersByMemberId(String memberId) {
         String sql = """
                 select
-                	m.member_id,
+                    m.id, m.member_id,
                     m.name,
                     m.phone,
                     m.major,
@@ -87,7 +89,8 @@ public class MembersDAO {
                 from members m
                 left join scores s
                 on m.id = s.member_id
-                where m.member_id = ?;
+                where m.member_id = ?
+                group by m.id, m.member_id, m.name, m.phone, m.major, m.grade;
                 """;
 
         try (Connection connection = DatabaseUtil.getConnection()) {
@@ -97,12 +100,13 @@ public class MembersDAO {
 
             if (rs.next()) {
                 return Members.builder()
+                        .id(rs.getInt("id"))
                         .memberId(rs.getString("member_id"))
                         .name(rs.getString("name"))
                         .phone(rs.getString("phone"))
                         .major(rs.getString("major"))
                         .grade(rs.getInt("grade"))
-                        .score(rs.getInt("score"))
+                        .score(rs.getObject("score") == null ? null : rs.getInt("score"))
                         .build();
             }
         } catch (SQLException e) {
@@ -144,7 +148,7 @@ public class MembersDAO {
         List<Members> membersList = new ArrayList<>();
         String sql = """
                 select
-                    m.member_id,
+                    m.id, m.member_id,
                     m.name,
                     m.phone,
                     m.major,
@@ -152,7 +156,8 @@ public class MembersDAO {
                     round(avg(s.score)) as score
                 from members m
                 left join scores s
-                on m.id = s.member_id;
+                on m.id = s.member_id
+                group by m.id, m.member_id, m.name, m.phone, m.major, m.grade;
                 """;
 
         try (Connection connection = DatabaseUtil.getConnection()) {
@@ -161,12 +166,13 @@ public class MembersDAO {
 
             while (rs.next()) {
                 membersList.add(Members.builder()
+                        .id(rs.getInt("id"))
                         .memberId(rs.getString("member_id"))
                         .name(rs.getString("name"))
                         .phone(rs.getString("phone"))
                         .major(rs.getString("major"))
                         .grade(rs.getInt("grade"))
-                        .score(rs.getInt("score"))
+                        .score(rs.getObject("score") == null ? null : rs.getInt("score"))
                         .build());
             }
         } catch (SQLException e) {
@@ -180,7 +186,7 @@ public class MembersDAO {
         List<Members> nameList = new ArrayList<>();
         String sql = """
                 select
-                	m.member_id,
+                    m.id, m.member_id,
                     m.name,
                     m.phone,
                     m.major,
@@ -189,7 +195,8 @@ public class MembersDAO {
                 from members m
                 left join scores s
                 on m.id = s.member_id
-                where m.name = ?;
+                where m.name = ?
+                group by m.id, m.member_id, m.name, m.phone, m.major, m.grade;
                 """;
 
         try (Connection connection = DatabaseUtil.getConnection()) {
@@ -199,12 +206,13 @@ public class MembersDAO {
 
             while(rs.next()) {
                 nameList.add(Members.builder()
+                        .id(rs.getInt("id"))
                         .memberId(rs.getString("member_id"))
                         .name(rs.getString("name"))
                         .phone(rs.getString("phone"))
                         .major(rs.getString("major"))
                         .grade(rs.getInt("grade"))
-                        .score(rs.getInt("score"))
+                        .score(rs.getObject("score") == null ? null : rs.getInt("score"))
                         .build()
                 );
             }
