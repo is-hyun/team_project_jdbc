@@ -8,8 +8,6 @@ import com.tenco.service.MemberService;
 import com.tenco.service.LecturesService;
 import com.tenco.service.ScoreService;
 import com.tenco.dto.Scores;
-import com.tenco.dto.SearchAllMembersDTO;
-import com.tenco.dto.SearchMembersByIdDTO;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -331,7 +329,7 @@ public class LmsView {
     // 학생 목록 조회
     // =========================================================
     private void listStudents() {
-        List<SearchAllMembersDTO> students = membersDAO.searchAllMembers();
+        List<Members> students = membersDAO.searchAllMembers();
         System.out.println("\n=== 학생 목록 ===");
 
         if (students.isEmpty()) {
@@ -339,7 +337,7 @@ public class LmsView {
             return;
         }
 
-        for (SearchAllMembersDTO student : students) {
+        for (Members student : students) {
             System.out.printf("이름: %s | 전화: %s | 전공: %s | 학년: %d%n",
                     student.getName(),
                     student.getPhone(),
@@ -357,7 +355,7 @@ public class LmsView {
         if (id == null) {
             return;
         }
-        SearchMembersByIdDTO member = membersDAO.searchMembersById(id);
+        Members member = membersDAO.searchMembersById(id);
 
         if (member == null) {
             System.out.println("해당 학생이 없습니다.");
@@ -452,7 +450,7 @@ public class LmsView {
             System.out.println("학생 이름을 입력해주세요.");
             return null;
         }
-        for (SearchAllMembersDTO student : membersDAO.searchAllMembers()) {
+        for (Members student : membersDAO.searchAllMembers()) {
             if (name.equals(student.getName())) {
                 return student.getId();
             }

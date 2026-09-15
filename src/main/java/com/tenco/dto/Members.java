@@ -16,4 +16,6 @@ public class Members {
     private String major;
     private int grade;
     private boolean admin;
+
+    private Integer score;
 }

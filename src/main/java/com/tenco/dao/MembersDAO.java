@@ -37,7 +37,7 @@ public class MembersDAO {
 
     //    학적 정보 조회
 //    id(pk)로 조회
-    public SearchMembersByIdDTO searchMembersById(int id) {
+    public Members searchMembersById(int id) {
         String sql = """
                 select
                 	m.member_id,
@@ -45,7 +45,7 @@ public class MembersDAO {
                     m.phone,
                     m.major,
                     m.grade,
-                    s.score
+                    round(avg(s.score)) as score
                 from members m
                 left join scores s
                 on m.id = s.member_id
@@ -58,7 +58,7 @@ public class MembersDAO {
             ResultSet rs = psmt.executeQuery();
 
             if (rs.next()) {
-                return SearchMembersByIdDTO.builder()
+                return Members.builder()
                         .memberId(rs.getString("member_id"))
                         .name(rs.getString("name"))
                         .phone(rs.getString("phone"))
@@ -75,7 +75,7 @@ public class MembersDAO {
     }
 
 //    memberId 로 조회
-    public SearchMembersByMemberIdDTO searchMembersByMemberId(String memberId) {
+    public Members searchMembersByMemberId(String memberId) {
         String sql = """
                 select
                 	m.member_id,
@@ -83,7 +83,7 @@ public class MembersDAO {
                     m.phone,
                     m.major,
                     m.grade,
-                    s.score
+                    round(avg(s.score)) as score
                 from members m
                 left join scores s
                 on m.id = s.member_id
@@ -96,7 +96,7 @@ public class MembersDAO {
             ResultSet rs = psmt.executeQuery();
 
             if (rs.next()) {
-                return SearchMembersByMemberIdDTO.builder()
+                return Members.builder()
                         .memberId(rs.getString("member_id"))
                         .name(rs.getString("name"))
                         .phone(rs.getString("phone"))
@@ -140,8 +140,8 @@ public class MembersDAO {
     }
 
     //    전체 조회 (관리자)
-    public List<SearchAllMembersDTO> searchAllMembers() {
-        List<SearchAllMembersDTO> membersList = new ArrayList<>();
+    public List<Members> searchAllMembers() {
+        List<Members> membersList = new ArrayList<>();
         String sql = """
                 select
                     m.member_id,
@@ -149,7 +149,7 @@ public class MembersDAO {
                     m.phone,
                     m.major,
                     m.grade,
-                    s.score
+                    round(avg(s.score)) as score
                 from members m
                 left join scores s
                 on m.id = s.member_id;
@@ -160,7 +160,7 @@ public class MembersDAO {
             ResultSet rs = psmt.executeQuery();
 
             while (rs.next()) {
-                membersList.add(SearchAllMembersDTO.builder()
+                membersList.add(Members.builder()
                         .memberId(rs.getString("member_id"))
                         .name(rs.getString("name"))
                         .phone(rs.getString("phone"))
@@ -176,8 +176,8 @@ public class MembersDAO {
         return membersList;
     }
 
-    public List<SearchMembersByNameDTO> searchMembersByName(String name) {
-        List<SearchMembersByNameDTO> nameList = new ArrayList<>();
+    public List<Members> searchMembersByName(String name) {
+        List<Members> nameList = new ArrayList<>();
         String sql = """
                 select
                 	m.member_id,
@@ -185,7 +185,7 @@ public class MembersDAO {
                     m.phone,
                     m.major,
                     m.grade,
-                    s.score
+                    round(avg(s.score)) as score
                 from members m
                 left join scores s
                 on m.id = s.member_id
@@ -198,7 +198,7 @@ public class MembersDAO {
             ResultSet rs = pstmt.executeQuery();
 
             while(rs.next()) {
-                nameList.add(SearchMembersByNameDTO.builder()
+                nameList.add(Members.builder()
                         .memberId(rs.getString("member_id"))
                         .name(rs.getString("name"))
                         .phone(rs.getString("phone"))
