@@ -26,7 +26,6 @@ public class ScoreService {
     }
 
     // 본인 성적 조회 (멤버 로그인 대상 전용)
-    // 로그인 대상으로 하는 메서드인데 안전 코드가 필요할까?
     public List<Scores> getScoresById(String memberId) throws SQLException{
         // 방어적 코드
         if (memberId == null || memberId.trim().isEmpty()) {
@@ -47,39 +46,33 @@ public class ScoreService {
             throw new SQLException("성적을 제대로 입력해주세요");
         }
 
-        // memberId와 lectureName으로 Member, Lectures 객체를 반환한는
-        // 메서드 필요
-        Members member = new Members();
+        Members member = membersDAO.searchMembersByMemberId(memberName);
         Lectures lecture = lecturesDAO.getLectureByFullname(lectureName);
 
         scoreDAO.updateScore(member, lecture, score);
     }
 
     // 성적 추가
-    public void addScore(String member_name, String lectureName) throws SQLException {
-        if (member_name == null || member_name.trim().isEmpty() ||
+    public void addScore(String memberName, String lectureName) throws SQLException {
+        if (memberName == null || memberName.trim().isEmpty() ||
                 lectureName == null || lectureName.trim().isEmpty()){
             throw new SQLException("이름과 과목을 제대로 입력해주세요!");
         }
 
-        // memberId와 lectureName으로 Member, Lectures 객체를 반환한는
-        // 메서드 필요
-        Members member = new Members();
+        Members member = membersDAO.searchMembersByMemberId(memberName);
         Lectures lecture = lecturesDAO.getLectureByFullname(lectureName);
 
         scoreDAO.addScore(member, lecture);
     }
 
     // 성적 삭제
-    public void deleteScore(String member_name, String lectureName) throws SQLException {
-        if (member_name == null || member_name.trim().isEmpty() ||
+    public void deleteScore(String memberName, String lectureName) throws SQLException {
+        if (memberName == null || memberName.trim().isEmpty() ||
                 lectureName == null || lectureName.trim().isEmpty()){
             throw new SQLException("이름과 과목을 제대로 입력해주세요!");
         }
 
-        // memberId와 lectureName으로 Member, Lectures 객체를 반환한는
-        // 메서드 필요
-        Members member = new Members();
+        Members member = membersDAO.searchMembersByMemberId(memberName);
         Lectures lecture = lecturesDAO.getLectureByFullname(lectureName);
 
         scoreDAO.deleteScore(member, lecture);
