@@ -543,11 +543,11 @@ public class LmsView {
 
     // =========================================================
     // 성적 수정
-    // 학생 로그인 아이디와 강의명을 서비스에 전달한다.
+    // 학생 로그인 아이디와 강의코드를 서비스에 전달한다.
     // =========================================================
     private void updateScore() throws SQLException {
         String memberId = readRequiredText("학생 아이디: ");
-        String lectureName = readRequiredText("강의명 (전체 이름): ");
+        String lectureCode = readRequiredText("강의코드: ");
         int score = readInt("수정 점수(0~100): ");
 
         if (score < 0 || score > 100) {
@@ -555,41 +555,41 @@ public class LmsView {
             return;
         }
 
-        if (!hasScore(memberId, lectureName)) return;
-        scoreService.updateScore(memberId, lectureName, score);
+        if (!hasScore(memberId, lectureCode)) return;
+        scoreService.updateScore(memberId, lectureCode, score);
         System.out.println("성적이 수정되었습니다.");
     }
 
     private void addScore() throws SQLException {
         String memberId = readRequiredText("학생 아이디: ");
-        String lectureName = readRequiredText("강의명 (전체 이름): ");
+        String lectureCode = readRequiredText("강의코드: ");
         for (Scores score : scoreService.getScoresById(memberId)) {
-            if (lectureName.equals(score.getLectureName())) {
+            if (lectureCode.equals(score.getLectureCode())) {
                 System.out.println("이미 등록된 성적입니다. 성적 수정 메뉴를 이용해주세요.");
                 return;
             }
         }
-        scoreService.addScore(memberId, lectureName);
+        scoreService.addScore(memberId, lectureCode);
         System.out.println("성적 항목이 추가되었습니다. 성적 수정 메뉴에서 점수를 입력해주세요.");
     }
 
     private void deleteScore() throws SQLException {
         String memberId = readRequiredText("학생 아이디: ");
-        String lectureName = readRequiredText("강의명 (전체 이름): ");
-        if (!hasScore(memberId, lectureName)) return;
-        String confirmation = readText("학생 [" + memberId + "]의 [" + lectureName
+        String lectureCode = readRequiredText("강의코드: ");
+        if (!hasScore(memberId, lectureCode)) return;
+        String confirmation = readText("학생 [" + memberId + "]의 [" + lectureCode
                 + "] 성적을 삭제하시겠습니까? (예 / 아니오): ");
         if (!"예".equals(confirmation)) {
             System.out.println("성적 삭제를 취소했습니다.");
             return;
         }
-        scoreService.deleteScore(memberId, lectureName);
+        scoreService.deleteScore(memberId, lectureCode);
         System.out.println("성적이 삭제되었습니다.");
     }
 
-    private boolean hasScore(String memberId, String lectureName) throws SQLException {
+    private boolean hasScore(String memberId, String lectureCode) throws SQLException {
         for (Scores score : scoreService.getScoresById(memberId)) {
-            if (lectureName.equals(score.getLectureName())) return true;
+            if (lectureCode.equals(score.getLectureCode())) return true;
         }
         System.out.println("해당 학생의 강의 성적이 없습니다.");
         return false;
