@@ -20,7 +20,7 @@ public class LmsView {
 
     private final LecturesService lecturesService = new LecturesService();
     private final ScoreService scoreService = new ScoreService();
-    // 학생 조회 서비스가 추가되기 전까지 기존 DAO를 사용한다.
+    // 수강신청 서비스에 회원 DAO를 주입한다.
     private final MembersDAO membersDAO = new MembersDAO();
     private final RegistrationService registrationService =
             new RegistrationService(new RegistrationDAO(), membersDAO);
@@ -227,19 +227,25 @@ public class LmsView {
     private void membersMenu() {
         while (true) {
             System.out.println("\n=== 회원 관련 메뉴 ===");
-            System.out.println(loggedInMember.isAdmin() ? "1. 학생 정보 조회" : "1. 내 정보 조회");
-            if (loggedInMember.isAdmin()) System.out.println("2. 학생 목록 조회");
+            System.out.println(loggedInMember.isAdmin() ? "1. 학생 아이디로 조회" : "1. 내 정보 조회");
+            if (loggedInMember.isAdmin()) {
+                System.out.println("2. 학생 목록 조회");
+                System.out.println("3. 학생 이름으로 조회");
+                System.out.println("4. 학생 등록");
+            }
             System.out.println("0. 이전 메뉴");
             int choice = readInt("선택: ");
             if (choice == 0) return;
-            if (choice == 2 && !requireAdmin()) continue;
+            if (choice >= 2 && choice <= 4 && !requireAdmin()) continue;
             try {
                 switch (choice) {
                     case 1 -> searchMember();
                     case 2 -> listStudents();
+                    case 3 -> searchMembersByName();
+                    case 4 -> registerMember();
                     default -> System.out.println("메뉴에 표시된 번호를 입력하세요.");
                 }
-            } catch (RuntimeException e) {
+            } catch (RuntimeException | SQLException e) {
                 System.out.println("오류: " + e.getMessage());
             }
         }
@@ -394,7 +400,7 @@ public class LmsView {
     // 학생 목록 조회
     // =========================================================
     private void listStudents() {
-        List<Members> students = membersDAO.searchAllMembers();
+        List<Members> students = memberService.getAllMembers();
         System.out.println("\n=== 학생 목록 ===");
 
         if (students.isEmpty()) {
@@ -403,24 +409,18 @@ public class LmsView {
         }
 
         for (Members student : students) {
-            System.out.printf("이름: %s | 전화: %s | 전공: %s | 학년: %d%n",
-                    student.getName(),
-                    student.getPhone(),
-                    student.getMajor(),
-                    student.getGrade());
+            printMember(student);
         }
     }
 
     // =========================================================
     // 특정 학생 정보 조회
-    // MembersDAO.searchMembersById(int id) 를 이용한다.
+    // 학생은 로그인한 본인만 조회하고, 관리자는 입력한 아이디로 조회한다.
     // =========================================================
-    private void searchMember() {
-        Integer id = loggedInMember.isAdmin() ? findStudentIdByName() : Integer.valueOf(loggedInMember.getId());
-        if (id == null) {
-            return;
-        }
-        Members member = membersDAO.searchMembersById(id);
+    private void searchMember() throws SQLException {
+        Members member = loggedInMember.isAdmin()
+                ? memberService.getMembersById(readText("학생 아이디: "))
+                : memberService.getSelfInfoById(loggedInMember.getId());
 
         if (member == null) {
             System.out.println("해당 학생이 없습니다.");
@@ -428,11 +428,46 @@ public class LmsView {
         }
 
         System.out.println("\n=== 학생 정보 ===");
-        System.out.printf("이름: %s | 전화: %s | 전공: %s | 학년: %d%n",
-                member.getName(),
-                member.getPhone(),
-                member.getMajor(),
-                member.getGrade());
+        printMember(member);
+    }
+
+    private void printMember(Members member) {
+        System.out.printf("아이디: %s | 이름: %s | 전화: %s | 전공: %s | 학년: %d | 평균 점수: %s%n",
+                member.getMemberId(), member.getName(), member.getPhone(), member.getMajor(),
+                member.getGrade(), member.getScore() == null ? "미등록" : member.getScore());
+    }
+
+    private void searchMembersByName() throws SQLException {
+        List<Members> students = memberService.getMembersByName(readText("학생 이름: "));
+        if (students.isEmpty()) {
+            System.out.println("해당 이름의 학생이 없습니다.");
+            return;
+        }
+        students.forEach(this::printMember);
+    }
+
+    private void registerMember() throws SQLException {
+        String memberId = readRequiredText("학생 아이디: ");
+        System.out.print("비밀번호: ");
+        String password = scanner.nextLine();
+        while (password.isBlank()) {
+            System.out.print("비밀번호를 입력해주세요: ");
+            password = scanner.nextLine();
+        }
+        String name = readRequiredText("이름: ");
+        String phone = readRequiredText("전화번호: ");
+        String major = readRequiredText("전공: ");
+        int grade = readPositiveInt("학년: ");
+        memberService.registerMember(memberId, password, name, phone, major, grade);
+        System.out.println("학생이 등록되었습니다.");
+    }
+
+    private String readRequiredText(String prompt) {
+        while (true) {
+            String value = readText(prompt);
+            if (!value.isEmpty()) return value;
+            System.out.println("필수 입력 항목입니다.");
+        }
     }
 
     // =========================================================
@@ -515,7 +550,7 @@ public class LmsView {
             System.out.println("학생 이름을 입력해주세요.");
             return null;
         }
-        for (Members student : membersDAO.searchAllMembers()) {
+        for (Members student : memberService.getAllMembers()) {
             if (name.equals(student.getName())) {
                 return student.getId();
             }
