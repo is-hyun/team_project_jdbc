@@ -234,6 +234,7 @@ public class RegistrationDAO {
                 from registration r
                 join members m on r.member_id = m.id
                 join lectures l on r.lecture_id = l.id
+                order by r.member_id
                 """;
 
         if (members == null || !members.isAdmin()) {
@@ -256,7 +257,7 @@ public class RegistrationDAO {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("조회실패 : " + e);
+            System.err.println("조회 실패 : " + e);
         }
 
 
