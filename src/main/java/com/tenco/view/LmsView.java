@@ -260,17 +260,24 @@ public class LmsView {
                 System.out.println("2. 학생 목록 조회");
                 System.out.println("3. 학생 이름으로 조회");
                 System.out.println("4. 학생 등록");
+                System.out.println("5. 학생 정보 수정");
+                System.out.println("6. 학생 삭제");
+            } else {
+                System.out.println("7. 내 비밀번호 변경");
             }
             System.out.println("0. 이전 메뉴");
             int choice = readInt("선택: ");
             if (choice == 0) return;
-            if (choice >= 2 && choice <= 4 && !requireAdmin()) continue;
+            if (choice >= 2 && choice <= 6 && !requireAdmin()) continue;
             try {
                 switch (choice) {
                     case 1 -> searchMember();
                     case 2 -> listStudents();
                     case 3 -> searchMembersByName();
                     case 4 -> registerMember();
+                    case 5 -> updateMember();
+                    case 6 -> deleteMember();
+                    case 7 -> updateMyPassword();
                     default -> System.out.println("메뉴에 표시된 번호를 입력하세요.");
                 }
             } catch (RuntimeException | SQLException e) {
@@ -476,18 +483,80 @@ public class LmsView {
 
     private void registerMember() throws SQLException {
         String memberId = readRequiredText("학생 아이디: ");
-        System.out.print("비밀번호: ");
-        String password = scanner.nextLine();
-        while (password.isBlank()) {
-            System.out.print("비밀번호를 입력해주세요: ");
-            password = scanner.nextLine();
-        }
+        String password = readNewPassword();
         String name = readRequiredText("이름: ");
         String phone = readRequiredText("전화번호: ");
         String major = readRequiredText("전공: ");
         int grade = readPositiveInt("학년: ");
         memberService.registerMember(memberId, password, name, phone, major, grade);
         System.out.println("학생이 등록되었습니다.");
+    }
+
+    private String readNewPassword() {
+        while (true) {
+            System.out.print("비밀번호 (8자 이상, 특수문자 1자 이상 포함): ");
+            String password = scanner.nextLine();
+            if (!memberService.isValidPassword(password)) {
+                System.out.println("8자 이상이며 특수문자(!@#$%^&*(),.?\":{}|<>)가 1자 이상 포함되어야 합니다.");
+                continue;
+            }
+            System.out.print("비밀번호 확인: ");
+            if (password.equals(scanner.nextLine())) return password;
+            System.out.println("비밀번호가 일치하지 않습니다. 다시 입력해주세요.");
+        }
+    }
+
+    private void updateMyPassword() throws SQLException {
+        if (loggedInMember.isAdmin()) {
+            System.out.println("학생만 사용할 수 있는 메뉴입니다.");
+            return;
+        }
+        String password = readNewPassword();
+        System.out.println(memberService.updateMemberPassword(loggedInMember.getId(), password)
+                ? "비밀번호가 변경되었습니다." : "비밀번호를 변경하지 못했습니다.");
+    }
+
+    private Members selectStudent() throws SQLException {
+        Members student = memberService.getMembersById(readRequiredText("학생 학번(아이디): "));
+        if (student == null || student.isAdmin()) {
+            System.out.println("해당 학번의 학생이 없습니다.");
+            return null;
+        }
+        printMember(student);
+        return student;
+    }
+
+    private void updateMember() throws SQLException {
+        Members student = selectStudent();
+        if (student == null) return;
+        System.out.println("1. 학번 수정\n2. 이름 수정\n3. 전화번호 수정\n4. 학과 수정\n0. 이전 메뉴");
+        int choice = readInt("선택: ");
+        if (choice == 0) return;
+        boolean updated;
+        switch (choice) {
+            case 1 -> updated = memberService.updateMemberId(student.getId(), readRequiredText("새 학번: "));
+            case 2 -> updated = memberService.updateMemberName(student.getId(), readRequiredText("새 이름: "));
+            case 3 -> updated = memberService.updateMemberPhone(student.getId(), readRequiredText("새 전화번호: "));
+            case 4 -> updated = memberService.updateMemberMajor(student.getId(), readRequiredText("새 학과: "));
+            default -> {
+                System.out.println("메뉴에 표시된 번호를 입력하세요.");
+                return;
+            }
+        }
+        System.out.println(updated ? "학생 정보가 수정되었습니다." : "학생 정보를 수정하지 못했습니다.");
+    }
+
+    private void deleteMember() throws SQLException {
+        Members student = selectStudent();
+        if (student == null) return;
+        String confirmation = readText("학생 [" + student.getMemberId() + "] " + student.getName()
+                + "님을 삭제하시겠습니까? (예 / 아니오): ");
+        if (!"예".equals(confirmation)) {
+            System.out.println("학생 삭제를 취소했습니다.");
+            return;
+        }
+        System.out.println(memberService.deleteMember(student.getId())
+                ? "학생이 삭제되었습니다." : "학생을 삭제하지 못했습니다.");
     }
 
     private String readRequiredText(String prompt) {
