@@ -119,6 +119,7 @@ public class LmsView {
             if (loggedInMember.isAdmin()) {
                 System.out.println("4. 전체 수강신청 조회");
             }
+            System.out.println("5. 내 수강취소");
             System.out.println("0. 이전 메뉴");
             int choice = readInt("선택: ");
             if (choice == 0) return;
@@ -131,6 +132,7 @@ public class LmsView {
                             registrationService.getMyLectureList(loggedInMember.getId()));
                     case 4 -> printRegistrations(
                             registrationService.getAllLectureList(loggedInMember));
+                    case 5 -> cancelRegistration();
                     default -> System.out.println("메뉴에 표시된 번호를 입력하세요.");
                 }
             } catch (RuntimeException | SQLException e) {
@@ -155,9 +157,36 @@ public class LmsView {
         System.out.println("해당 강의가 없습니다.");
     }
 
+    private void cancelRegistration() {
+        int memberId = loggedInMember.getId();
+        List<Registration> registrations = registrationService.getMyLectureList(memberId);
+        if (registrations == null || registrations.isEmpty()) {
+            System.out.println("취소할 수강신청 내역이 없습니다.");
+            return;
+        }
+        printRegistrations(registrations);
+        int lectureId = readInt("취소할 강의번호 (0: 이전 메뉴): ");
+        if (lectureId == 0) return;
+
+        for (Registration registration : registrations) {
+            if (registration.getMemberId() == memberId && registration.getLectureId() == lectureId) {
+                String confirmation = readText("해당 강의의 수강을 취소하시겠습니까? (예 / 아니오): ");
+                if (!"예".equals(confirmation)) {
+                    System.out.println("수강취소를 중단했습니다.");
+                    return;
+                }
+                registrationService.deleteRegistration(
+                        String.valueOf(memberId), String.valueOf(lectureId));
+                printRegistrations(registrationService.getMyLectureList(memberId));
+                return;
+            }
+        }
+        System.out.println("본인이 신청한 강의번호만 취소할 수 있습니다.");
+    }
+
     private void printRegistrations(List<Registration> registrations) {
         System.out.println("\n=== 수강신청 내역 ===");
-        if (registrations.isEmpty()) {
+        if (registrations == null || registrations.isEmpty()) {
             System.out.println("수강신청 내역이 없습니다.");
             return;
         }
