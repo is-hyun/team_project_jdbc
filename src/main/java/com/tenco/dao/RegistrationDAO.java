@@ -132,11 +132,11 @@ public class RegistrationDAO {
             String selectLectureSql = """
                     select available 
                     from lectures 
-                    where lecture_id = ?
+                    where id = ?
                     """;
             String updateSql = """
                             update lectures set available = true 
-                            where lecture_id = ?
+                            where id = ?
                             """;
 
             try (PreparedStatement deletePstmt = conn.prepareStatement(deleteSql)) {
