@@ -4,7 +4,6 @@ import com.tenco.dao.MembersDAO;
 import com.tenco.dao.RegistrationDAO;
 import com.tenco.dto.Members;
 import com.tenco.dto.Registration;
-import com.tenco.dto.SearchMembersByIdDTO;
 import lombok.Data;
 
 import java.sql.SQLException;
@@ -29,7 +28,7 @@ public class RegistrationService {
 
     // 내 수강신청 조회
     public List<Registration> getMyLectureList(int studentId) {
-        SearchMembersByIdDTO member = memberDAO.searchMembersById(studentId);
+        Members member = memberDAO.searchMembersById(studentId);
         if (member == null) {
             System.out.println("존재하지 않는 회원 정보입니다. (ID: " + studentId + ")");
             return Collections.emptyList();
