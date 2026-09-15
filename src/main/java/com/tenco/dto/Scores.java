@@ -11,7 +11,7 @@ public class Scores {
     private int id;
     private String memberId;
     private String name;
-    private String lectureId;
+    private String lectureCode;
     private String lectureName;
     private int score;
 }
