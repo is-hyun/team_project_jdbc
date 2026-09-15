@@ -54,7 +54,7 @@ public class ScoreDAO {
                 on s.member_id = m.id
                 join lectures l
                 on s.lecture_id = l.id
-                where s.member_id = ?;
+                where m.member_id = ?;
                 """;
 
         try (Connection connection = DatabaseUtil.getConnection()) {
@@ -77,67 +77,28 @@ public class ScoreDAO {
     }
 
     // 성적 수정
-    // [처리 순서]
-    // 1. DB 연결을 얻고 자동 커밋을 끈다 (트랜잭션 시작)
-    // 2. 이 학생의 성적목록을 출력 -- select
-    // 3. 찾은 성적을 score로 수정한다 -- update
-    // 4. 2 - 3번이 모두 성공하면 commit, 하나라도 실패하면 rollback
-    // 5. 자동 커밋을 원래대로 되돌리고 연결을 닫는다
-    public void updateScore(Members member, Lectures lecture, Integer score) throws SQLException{
-        Connection conn = null;
+    public void updateScore(Members member, Lectures lecture, Integer score) throws SQLException {
+        Connection conn = DatabaseUtil.getConnection();
 
-        try {
-            conn = DatabaseUtil.getConnection();
+        String sql = """
+                update scores
+                set score = ?
+                where member_id = ?
+                and lecture_id = ?
+                """;
 
-            conn.setAutoCommit(false);
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, score);
+            pstmt.setInt(2, member.getId());
+            pstmt.setInt(3, lecture.getId());
 
-            String checkSql = """
-                    select *
-                    from scores
-                    where member_id = ?
-                    and lecture_id = ?
-                    """;
-
-            int updateLecture;
-
-            try (PreparedStatement checkPstmt = conn.prepareStatement(checkSql)) {
-                checkPstmt.setInt(1, member.getId());
-                checkPstmt.setInt(2, lecture.getId());
-
-                try (ResultSet rs = checkPstmt.executeQuery()) {
-                    if (!rs.next()){
-                        throw new SQLException("해당 과목의 수강 기록이 없습니다");
-                    }
-                    updateLecture = rs.getInt("id");
-                }
-            }
-
-            String updateSql = """
-                    update scores
-                    set score = ?
-                    where id = ?
-                    """;
-
-            try (PreparedStatement updatePstmt = conn.prepareStatement(updateSql)) {
-                updatePstmt.setInt(1, score);
-                updatePstmt.setInt(2, updateLecture);
-
-                updatePstmt.executeUpdate();
-            }
-
-            conn.commit();
-
+            pstmt.executeUpdate();
         } catch (SQLException e) {
-            if (conn != null){
-                conn.rollback();
-            }
-            throw new RuntimeException(e);
-        }finally {
-            if (conn != null) {
-                conn.setAutoCommit(true);
-                conn.close();
-            }
+            throw new SQLException(e);
+        } finally {
+            conn.close();
         }
+
     }
 
     // 성적 추가
@@ -160,8 +121,10 @@ public class ScoreDAO {
             conn.setAutoCommit(false);
 
             String checkSql = """
-                    insert into registration(member_id, lecture_id)
-                    values (?, ?)
+                    select *
+                    from registration
+                    where member_id = ?
+                    and lecture_id = ?
                     """;
             try (PreparedStatement pstmt = conn.prepareStatement(checkSql)) {
                 pstmt.setInt(1, member.getId());
@@ -169,7 +132,7 @@ public class ScoreDAO {
 
                 ResultSet rs = pstmt.executeQuery();
 
-                if (!rs.next()){
+                if (!rs.next()) {
                     throw new SQLException("해당 과목을 수강하신 기록이 없습니다");
                 }
             }
@@ -187,11 +150,15 @@ public class ScoreDAO {
             conn.commit();
 
         } catch (SQLException e) {
-            if (conn != null){
-                conn.rollback();
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException rollbackException){
+                    e.addSuppressed(rollbackException);
+                }
             }
-            throw new RuntimeException(e);
-        }finally {
+            throw e;
+        } finally {
             if (conn != null) {
                 conn.setAutoCommit(true);
                 conn.close();
@@ -208,7 +175,7 @@ public class ScoreDAO {
     //      rollback를 한다 -- delete
     // 5. 2 - 4번이 모두 성공하면 commit, 하나라도 실패하면 rollback
     // 6. 자동 커밋을 원래대로 되돌리고 연결을 닫는다
-    public void deleteScore(Members member, Lectures lecture){
+    public void deleteScore(Members member, Lectures lecture) {
         try (Connection conn = DatabaseUtil.getConnection()) {
 
             String sql = """
@@ -219,23 +186,24 @@ public class ScoreDAO {
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setInt(1, member.getId());
                 pstmt.setInt(2, lecture.getId());
+
+                pstmt.executeUpdate();
             }
 
-        } catch (SQLException e){
+        } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
     // score 객체 생성
     private static Scores createScore(ResultSet rs) throws SQLException {
-        Scores scores = Scores.builder()
+        return Scores.builder()
                 .id(rs.getInt("id"))
                 .memberId(rs.getString("member_id"))
                 .name(rs.getString("name"))
-                .lectureId(rs.getString("lecture_code"))
+                .lectureCode(rs.getString("lecture_code"))
                 .lectureName(rs.getString("lecture_name"))
                 .score(rs.getInt("score"))
                 .build();
-        return scores;
     }
 }

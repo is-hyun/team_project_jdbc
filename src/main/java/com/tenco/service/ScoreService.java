@@ -21,13 +21,18 @@ public class ScoreService {
     ///////////////////////////////////////////////////////
 
     // 성적 전체 조회 (관리자 전용)
-    public List<Scores> getAllScores(){
+    public List<Scores> getAllScores() throws SQLException{
         return scoreDAO.getAllScores();
     }
 
     // 본인 성적 조회 (멤버 로그인 대상 전용)
     // 로그인 대상으로 하는 메서드인데 안전 코드가 필요할까?
-    public List<Scores> getScoresById(String memberId){
+    public List<Scores> getScoresById(String memberId) throws SQLException{
+        // 방어적 코드
+        if (memberId == null || memberId.trim().isEmpty()) {
+            throw new SQLException("회원 ID가 올바르지 않습니다.");
+        }
+
         return scoreDAO.getScoresById(memberId);
     }
 
