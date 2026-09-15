@@ -10,6 +10,7 @@ public class Registration {
     private int id;
     private int memberId;
     private String memberName;
+    private String lectureName;
     private int lectureId;
 
 }
