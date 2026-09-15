@@ -2,7 +2,6 @@ package com.tenco.view;
 
 import com.tenco.dao.MembersDAO;
 import com.tenco.dao.RegistrationDAO;
-import com.tenco.dao.ScoreDAO;
 import com.tenco.dto.Lectures;
 import com.tenco.dto.Members;
 import com.tenco.dto.Registration;
@@ -24,8 +23,6 @@ public class LmsView {
     private final MembersDAO membersDAO = new MembersDAO();
     private final RegistrationService registrationService =
             new RegistrationService(new RegistrationDAO(), membersDAO);
-    // ScoreService.updateScore의 학생/강의 조회 구현 전까지 기존 수정 동작을 유지한다.
-    private final ScoreDAO scoreDAO = new ScoreDAO();
     private final Scanner scanner = new Scanner(System.in);
     private final MemberService memberService = new MemberService();
     private Members loggedInMember;
@@ -233,6 +230,8 @@ public class LmsView {
             if (loggedInMember.isAdmin()) {
                 System.out.println("2. 전체 성적 조회");
                 System.out.println("3. 성적 수정");
+                System.out.println("4. 성적 추가");
+                System.out.println("5. 성적 삭제");
             }
             System.out.println("0. 이전 메뉴");
             int choice = readInt("선택: ");
@@ -243,8 +242,8 @@ public class LmsView {
                     case 1 -> searchMemberScores();
                     case 2 -> listAllScores();
                     case 3 -> updateScore();
-                    // 서비스의 대상 조회 및 DAO의 SQL 실행 구현이 완료되면 연결한다.
-                    case 4, 5 -> System.out.println("아직 사용할 수 없는 기능입니다.");
+                    case 4 -> addScore();
+                    case 5 -> deleteScore();
                     default -> System.out.println("메뉴에 표시된 번호를 입력하세요.");
                 }
             } catch (RuntimeException | SQLException e) {
@@ -524,11 +523,9 @@ public class LmsView {
     // ScoreService.getScoresById(String id) 를 사용한다.
     // =========================================================
     private void searchMemberScores() throws SQLException {
-        Integer memberId = loggedInMember.isAdmin() ? findStudentIdByName() : Integer.valueOf(loggedInMember.getId());
-        if (memberId == null) {
-            return;
-        }
-        List<Scores> scores = scoreService.getScoresById(String.valueOf(memberId));
+        String memberId = loggedInMember.isAdmin()
+                ? readRequiredText("학생 아이디: ") : loggedInMember.getMemberId();
+        List<Scores> scores = scoreService.getScoresById(memberId);
 
         System.out.println("\n=== 학생 성적 ===");
         if (scores.isEmpty()) {
@@ -546,17 +543,11 @@ public class LmsView {
 
     // =========================================================
     // 성적 수정
-    // 선택한 학생과 강의의 ID를 객체에 담아 ScoreDAO에 전달한다.
+    // 학생 로그인 아이디와 강의명을 서비스에 전달한다.
     // =========================================================
     private void updateScore() throws SQLException {
-        Integer memberId = findStudentIdByName();
-        if (memberId == null) {
-            return;
-        }
-        Integer lectureId = findLectureIdByName();
-        if (lectureId == null) {
-            return;
-        }
+        String memberId = readRequiredText("학생 아이디: ");
+        String lectureName = readRequiredText("강의명 (전체 이름): ");
         int score = readInt("수정 점수(0~100): ");
 
         if (score < 0 || score > 100) {
@@ -564,45 +555,44 @@ public class LmsView {
             return;
         }
 
-        // 받아온 Integer
-        Members member = Members.builder().id(memberId).build();
-        Lectures lecture = Lectures.builder().id(lectureId).build();
-        scoreDAO.updateScore(member, lecture, score);
+        if (!hasScore(memberId, lectureName)) return;
+        scoreService.updateScore(memberId, lectureName, score);
         System.out.println("성적이 수정되었습니다.");
     }
 
-    // 이름으로 찾은 내부 ID를 기존 DAO에 전달한다. 같은 이름이면 첫 번째 결과를 사용한다.
-    private Integer findStudentIdByName() {
-        System.out.print("학생 이름: ");
-        String name = scanner.nextLine().trim();
-        if (name.isEmpty()) {
-            System.out.println("학생 이름을 입력해주세요.");
-            return null;
-        }
-        for (Members student : memberService.getAllMembers()) {
-            if (name.equals(student.getName())) {
-                return student.getId();
+    private void addScore() throws SQLException {
+        String memberId = readRequiredText("학생 아이디: ");
+        String lectureName = readRequiredText("강의명 (전체 이름): ");
+        for (Scores score : scoreService.getScoresById(memberId)) {
+            if (lectureName.equals(score.getLectureName())) {
+                System.out.println("이미 등록된 성적입니다. 성적 수정 메뉴를 이용해주세요.");
+                return;
             }
         }
-        System.out.println("해당 이름의 학생이 없습니다.");
-        return null;
+        scoreService.addScore(memberId, lectureName);
+        System.out.println("성적 항목이 추가되었습니다. 성적 수정 메뉴에서 점수를 입력해주세요.");
     }
 
-    // 강의명으로 강의에 대한 정보를 검색한다.
-    private Integer findLectureIdByName() throws SQLException {
-        System.out.print("강의명: ");
-        String name = scanner.nextLine().trim();
-        if (name.isEmpty()) {
-            System.out.println("강의명을 입력해주세요.");
-            return null;
+    private void deleteScore() throws SQLException {
+        String memberId = readRequiredText("학생 아이디: ");
+        String lectureName = readRequiredText("강의명 (전체 이름): ");
+        if (!hasScore(memberId, lectureName)) return;
+        String confirmation = readText("학생 [" + memberId + "]의 [" + lectureName
+                + "] 성적을 삭제하시겠습니까? (예 / 아니오): ");
+        if (!"예".equals(confirmation)) {
+            System.out.println("성적 삭제를 취소했습니다.");
+            return;
         }
-        for (Lectures lecture : lecturesService.searchLectures(name)) {
-            if (name.equals(lecture.getLectureName())) {
-                return lecture.getId();
-            }
+        scoreService.deleteScore(memberId, lectureName);
+        System.out.println("성적이 삭제되었습니다.");
+    }
+
+    private boolean hasScore(String memberId, String lectureName) throws SQLException {
+        for (Scores score : scoreService.getScoresById(memberId)) {
+            if (lectureName.equals(score.getLectureName())) return true;
         }
-        System.out.println("해당 이름의 강의가 없습니다.");
-        return null;
+        System.out.println("해당 학생의 강의 성적이 없습니다.");
+        return false;
     }
 
     // =========================================================

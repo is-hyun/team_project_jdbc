@@ -47,7 +47,13 @@ public class ScoreService {
         }
 
         Members member = membersDAO.searchMembersByMemberId(memberName);
+        if (member == null) {
+            throw new SQLException("해당 아이디의 학생이 없습니다.");
+        }
         Lectures lecture = lecturesDAO.getLectureByFullname(lectureName);
+        if (lecture == null) {
+            throw new SQLException("해당 이름의 강의가 없습니다.");
+        }
 
         scoreDAO.updateScore(member, lecture, score);
     }
@@ -60,7 +66,13 @@ public class ScoreService {
         }
 
         Members member = membersDAO.searchMembersByMemberId(memberName);
+        if (member == null) {
+            throw new SQLException("해당 아이디의 학생이 없습니다.");
+        }
         Lectures lecture = lecturesDAO.getLectureByFullname(lectureName);
+        if (lecture == null) {
+            throw new SQLException("해당 이름의 강의가 없습니다.");
+        }
 
         scoreDAO.addScore(member, lecture);
     }
@@ -73,7 +85,13 @@ public class ScoreService {
         }
 
         Members member = membersDAO.searchMembersByMemberId(memberName);
+        if (member == null) {
+            throw new SQLException("해당 아이디의 학생이 없습니다.");
+        }
         Lectures lecture = lecturesDAO.getLectureByFullname(lectureName);
+        if (lecture == null) {
+            throw new SQLException("해당 이름의 강의가 없습니다.");
+        }
 
         scoreDAO.deleteScore(member, lecture);
     }
