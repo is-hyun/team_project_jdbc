@@ -111,16 +111,21 @@ public class LmsView {
         while (true) {
             System.out.println("\n=== 수강신청 관련 메뉴 ===");
             System.out.println("1. 강의 목록 조회");
-            System.out.println("2. 수강신청");
-            System.out.println("3. 내 수강신청 조회");
             if (loggedInMember.isAdmin()) {
                 System.out.println("4. 전체 수강신청 조회");
+            } else {
+                System.out.println("2. 수강신청");
+                System.out.println("3. 내 수강신청 조회");
+                System.out.println("5. 내 수강취소");
             }
-            System.out.println("5. 내 수강취소");
             System.out.println("0. 이전 메뉴");
             int choice = readInt("선택: ");
             if (choice == 0) return;
             if (choice == 4 && !requireAdmin()) continue;
+            if (loggedInMember.isAdmin() && (choice == 2 || choice == 3 || choice == 5)) {
+                System.out.println("학생만 사용할 수 있는 메뉴입니다.");
+                continue;
+            }
             try {
                 switch (choice) {
                     case 1 -> listLectures();
@@ -188,9 +193,12 @@ public class LmsView {
             return;
         }
         for (Registration registration : registrations) {
-            System.out.printf("신청번호: %d | 회원번호: %d | 학생: %s | 강의번호: %d%n",
-                    registration.getId(), registration.getMemberId(),
-                    registration.getMemberName(), registration.getLectureId());
+            if (loggedInMember.isAdmin()) {
+                System.out.printf("회원번호: %d | 학생: %s | ",
+                        registration.getMemberId(), registration.getMemberName());
+            }
+            System.out.printf("강의번호: %d | 강의명: %s%n",
+                    registration.getLectureId(), registration.getLectureName());
         }
     }
 
