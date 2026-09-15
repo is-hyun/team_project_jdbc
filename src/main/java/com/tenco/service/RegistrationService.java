@@ -31,7 +31,7 @@ public class RegistrationService {
         Members member = memberDAO.searchMembersById(studentId);
         if (member == null) {
             System.out.println("존재하지 않는 회원 정보입니다. (ID: " + studentId + ")");
-            return Collections.emptyList();
+            return null;
         }
         return registrationDAO.getMyRegistrations(studentId);
     }
@@ -40,8 +40,20 @@ public class RegistrationService {
     public List<Registration> getAllLectureList(Members loginUser) {
         if (loginUser == null || !loginUser.isAdmin()) {
             System.out.println("권한이 없습니다. 관리자만 전체 조회가 가능합니다.");
-            return Collections.emptyList();
+            return null;
         }
         return registrationDAO.getAllRegistrations(loginUser);
+    }
+
+    public List<Registration> deleteRegistration(String memId, String lecId) {
+        try {
+            List<Registration> remainingList = registrationDAO.deleteRegistration(memId, lecId);
+            System.out.println("성공적으로 수강 취소되었습니다.");
+            return remainingList;
+
+        } catch (SQLException e) {
+            System.out.println("수강 취소 실패");
+            throw new RuntimeException(e);
+        }
     }
 }
