@@ -8,6 +8,12 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class MemberService {
+//    private final MembersDAO membersDAO;
+//
+//    public MemberService() {
+//        this(new MembersDAO());
+//    }
+
     /*
     학생 view
                        둘 중 필요없는건 삭제 예정
@@ -40,7 +46,7 @@ public class MemberService {
     //    학생 조회
     // ===========================================================================================================================
     //    1. id로 조회
-    public SearchMembersByIdDTO getSelfInfoById(int id) throws SQLException {
+    public Members getSelfInfoById(int id) throws SQLException {
         if (id <= 0) {
             throw new SQLException("로그인 후 이용 가능합니다.");
         }
@@ -49,7 +55,7 @@ public class MemberService {
     }
 
     //    2. memberId로 조회
-    public SearchMembersByMemberIdDTO getSelfInfoByMemberId(String memberId) throws SQLException {
+    public Members getSelfInfoByMemberId(String memberId) throws SQLException {
         if (memberId == null || memberId.trim().isEmpty()) {
             throw new SQLException("로그인 후 이용 가능합니다.");
         }
@@ -60,7 +66,7 @@ public class MemberService {
     // ===========================================================================================================================
 
     //    학생 조회 (관리자)
-    public SearchMembersByMemberIdDTO getMembersById(String memberId) throws SQLException {
+    public Members getMembersById(String memberId) throws SQLException {
         if (memberId == null || memberId.trim().isEmpty()) {
             throw new SQLException("학생 ID를 입력해주세요.");
         }
@@ -92,11 +98,11 @@ public class MemberService {
     }
 
     //    모든 학생 조회 (관리자)
-    public List<SearchAllMembersDTO> getAllMembers() {
+    public List<Members> getAllMembers() {
         return membersDAO.searchAllMembers();
     }
 
-    public List<SearchMembersByNameDTO> getMembersByName(String name) throws SQLException {
+    public List<Members> getMembersByName(String name) throws SQLException {
         if (name == null || name.trim().isEmpty()) {
             throw new SQLException("학생 ID를 입력해주세요.");
         }
