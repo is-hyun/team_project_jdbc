@@ -146,7 +146,7 @@ public class MemberService {
             throw new SQLException("변경할 학번을 입력해주세요.");
         }
 
-        return membersDAO.updateMemberPassword(targetId, newMemberId);
+        return membersDAO.updateMemberId(targetId, newMemberId);
     }
 
     //    학생 이름 변경 (관리자)
@@ -159,7 +159,7 @@ public class MemberService {
             throw new SQLException("변경할 이름을 입력해주세요.");
         }
 
-        return membersDAO.updateMemberPassword(targetId, newName);
+        return membersDAO.updateMemberName(targetId, newName);
     }
 
     //    학생 전화번호 변경 (관리자)
@@ -172,7 +172,7 @@ public class MemberService {
             throw new SQLException("변경할 번호를 입력해주세요.");
         }
 
-        return membersDAO.updateMemberPassword(targetId, newPhone);
+        return membersDAO.updateMemberPhone(targetId, newPhone);
     }
 
     //    학생 학과 변경 (관리자)
@@ -185,7 +185,7 @@ public class MemberService {
             throw new SQLException("변경할 번호를 입력해주세요.");
         }
 
-        return membersDAO.updateMemberPassword(targetId, newMajor);
+        return membersDAO.updateMemberMajor(targetId, newMajor);
     }
 
 
@@ -206,7 +206,7 @@ public class MemberService {
     }
 
     //    비밀번호 검증(8자이상 + 특수문자 포함)
-    private boolean isValidPassword(String password) {
+    public boolean isValidPassword(String password) {
         if (password == null || password.length() < 8) {
             return false;
         }
