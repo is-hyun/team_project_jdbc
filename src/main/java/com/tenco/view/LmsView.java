@@ -438,7 +438,7 @@ public class LmsView {
     // =========================================================
     // 전체 성적 조회
     // =========================================================
-    private void listAllScores() {
+    private void listAllScores() throws SQLException {
         List<Scores> scores = scoreService.getAllScores();
         System.out.println("\n=== 전체 성적 목록 ===");
 
@@ -459,7 +459,7 @@ public class LmsView {
     // 학생 성적 조회
     // ScoreService.getScoresById(String id) 를 사용한다.
     // =========================================================
-    private void searchMemberScores() {
+    private void searchMemberScores() throws SQLException {
         Integer memberId = loggedInMember.isAdmin() ? findStudentIdByName() : Integer.valueOf(loggedInMember.getId());
         if (memberId == null) {
             return;
