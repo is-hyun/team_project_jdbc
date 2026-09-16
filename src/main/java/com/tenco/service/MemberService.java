@@ -190,6 +190,10 @@ public class MemberService {
             throw new SQLException("변경할 번호를 입력해주세요.");
         }
 
+        if (!newPhone.matches("[0-9]{11}")) {
+            throw new SQLException("전화번호는 숫자 11자리로 입력해주세요. (하이픈, 공백 제외)");
+        }
+
         return membersDAO.updateMemberPhone(targetId, newPhone);
     }
 
