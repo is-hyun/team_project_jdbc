@@ -153,6 +153,19 @@ public class LmsView {
         }
         for (Lectures lecture : lecturesService.searchLectures(code)) {
             if (code.equals(lecture.getLectureCode())) {
+                List<Registration> registrations =
+                        registrationService.getMyLectureList(loggedInMember.getId());
+                if (registrations == null) return;
+                for (Registration registration : registrations) {
+                    if (registration.getLectureId() == lecture.getId()) {
+                        System.out.println("이미 수강신청한 과목입니다.");
+                        return;
+                    }
+                }
+                if (!lecture.isAvailable()) {
+                    System.out.println("수강인원초과로 신청할 수 없습니다.");
+                    return;
+                }
                 registrationService.applyLecture(
                         String.valueOf(loggedInMember.getId()), String.valueOf(lecture.getId()));
                 return;
@@ -419,7 +432,7 @@ public class LmsView {
                     lecture.getProfessor(),
                     lecture.getCredit(),
                     lecture.getCapacity(),
-                    lecture.isAvailable() ? "개설중" : "폐강");
+                    lecture.isAvailable() ? "개설중" : "수강인원초과");
         }
     }
 
