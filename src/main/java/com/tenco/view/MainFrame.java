@@ -95,8 +95,10 @@ public class MainFrame extends JFrame {
 
         searchPanel.add(new JLabel("검색어:"));
         searchPanel.add(searchField);
+        searchPanel.add(Box.createHorizontalStrut(5));
         searchPanel.add(searchBtn);
         searchPanel.add(allBtn);
+        searchPanel.add(Box.createHorizontalStrut(10));
         searchPanel.add(applyBtn);
         panel.add(searchPanel, BorderLayout.NORTH);
 
@@ -382,6 +384,7 @@ public class MainFrame extends JFrame {
         formPanel.add(new JLabel("교수:")); formPanel.add(profF);
         formPanel.add(new JLabel("학점:")); formPanel.add(creditF);
         formPanel.add(new JLabel("정원:")); formPanel.add(capF);
+        formPanel.add(Box.createHorizontalStrut(15));
         formPanel.add(addBtn);
         formPanel.add(updateBtn);
         formPanel.add(delBtn);
@@ -503,6 +506,7 @@ public class MainFrame extends JFrame {
         scoreForm.add(new JLabel("학생ID(학번):")); scoreForm.add(memIdF);
         scoreForm.add(new JLabel("강의코드:")); scoreForm.add(lecCodeF);
         scoreForm.add(new JLabel("점수:")); scoreForm.add(scoreF);
+        scoreForm.add(Box.createHorizontalStrut(15));
         scoreForm.add(addBtn);
         scoreForm.add(updateBtn);
         scoreForm.add(delBtn);
@@ -628,17 +632,21 @@ public class MainFrame extends JFrame {
         northPanel.add(searchPanel, BorderLayout.NORTH);
 
         // 입력 폼 패널
+        // 👇 기본 간격은 2로 유지합니다.
         JPanel formPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 10));
-        JTextField memberIdF = new JTextField(6);
-        JPasswordField passwordF = new JPasswordField(6);
-        JTextField nameF = new JTextField(5);
-        JTextField phoneF = new JTextField(7);
-        JTextField majorF = new JTextField(6);
+
+        JTextField memberIdF = new JTextField(5);
+        JPasswordField passwordF = new JPasswordField(5);
+        JTextField nameF = new JTextField(4);
+        JTextField phoneF = new JTextField(9);
+        JTextField majorF = new JTextField(5);
+
+        // 👇 학년 입력창 크기를 기존 1에서 2로 2배 키웁니다.
         JTextField gradeF = new JTextField(2);
 
-        JButton addBtn = new JButton("학생 등록");
-        JButton updateBtn = new JButton("학생 정보 수정");
-        JButton delBtn = new JButton("학생 삭제");
+        JButton addBtn = new JButton("등록");
+        JButton updateBtn = new JButton("수정");
+        JButton delBtn = new JButton("삭제");
 
         formPanel.add(new JLabel("학번:")); formPanel.add(memberIdF);
         formPanel.add(new JLabel("비번:")); formPanel.add(passwordF);
@@ -646,6 +654,10 @@ public class MainFrame extends JFrame {
         formPanel.add(new JLabel("전화번호:")); formPanel.add(phoneF);
         formPanel.add(new JLabel("학과:")); formPanel.add(majorF);
         formPanel.add(new JLabel("학년:")); formPanel.add(gradeF);
+
+        // 👇 학년과 등록 버튼 사이의 간격을 늘리기 위해 빈 공간(너비 15픽셀의 빈 레이블)을 추가합니다.
+        formPanel.add(Box.createHorizontalStrut(15));
+
         formPanel.add(addBtn);
         formPanel.add(updateBtn);
         formPanel.add(delBtn);
@@ -715,7 +727,11 @@ public class MainFrame extends JFrame {
                 if (row != -1) {
                     memberIdF.setText(model.getValueAt(row, 1) != null ? model.getValueAt(row, 1).toString() : "");
                     nameF.setText(model.getValueAt(row, 2) != null ? model.getValueAt(row, 2).toString() : "");
-                    phoneF.setText(model.getValueAt(row, 3) != null ? model.getValueAt(row, 3).toString() : "");
+
+                    // 👇 전화번호 입력창(phoneF)에는 하이픈을 제거하고 숫자만 채우기
+                    String rawPhone = model.getValueAt(row, 3) != null ? model.getValueAt(row, 3).toString() : "";
+                    phoneF.setText(rawPhone.replaceAll("-", ""));
+
                     majorF.setText(model.getValueAt(row, 4) != null ? model.getValueAt(row, 4).toString() : "");
                     gradeF.setText(model.getValueAt(row, 5) != null ? model.getValueAt(row, 5).toString() : "");
                 }
