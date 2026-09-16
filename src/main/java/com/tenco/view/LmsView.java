@@ -154,7 +154,7 @@ public class LmsView {
         for (Lectures lecture : lecturesService.searchLectures(code)) {
             if (code.equals(lecture.getLectureCode())) {
                 List<Registration> registrations =
-                        registrationService.getMyLectureList(loggedInMember.getId());
+                        registrationService.getMyLectureList(loggedInMember.getMemberId());
                 if (registrations == null) return;
                 for (Registration registration : registrations) {
                     if (registration.getLectureId() == lecture.getId()) {
