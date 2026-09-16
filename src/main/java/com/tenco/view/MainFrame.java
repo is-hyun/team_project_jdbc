@@ -445,7 +445,10 @@ public class MainFrame extends JFrame {
                 return;
             }
             try {
+                int lecId = (int) model.getValueAt(row, 0); // 👉 0번 컬럼(ID)에서 고유 PK 값을 가져옵니다[cite: 2].
+
                 Lectures l = Lectures.builder()
+                        .id(lecId) // 👉 이 부분이 빠져있어서 DB에 반영되지 않았던 것입니다!
                         .lectureCode(codeF.getText().trim())
                         .lectureName(nameF.getText().trim())
                         .professor(profF.getText().trim())
@@ -458,6 +461,7 @@ public class MainFrame extends JFrame {
                 loadAdminLectures.run();
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "수정 실패: " + ex.getMessage());
+                ex.printStackTrace();
             }
         });
 
@@ -742,19 +746,35 @@ public class MainFrame extends JFrame {
                 return;
             }
             try {
-                int targetPk = (int) model.getValueAt(row, 0);
+                int targetPk = (int) model.getValueAt(row, 0); // PK ID
                 String newName = nameF.getText().trim();
                 String newPhone = phoneF.getText().trim();
                 String newMajor = majorF.getText().trim();
+                String gradeStr = gradeF.getText().trim(); // 학년 필드 값
 
-                memberService.updateMemberName(targetPk, newName);
-                memberService.updateMemberPhone(targetPk, newPhone);
-                memberService.updateMemberMajor(targetPk, newMajor);
+                // 1. 각 필드가 비어있지 않은 경우에만 안전하게 업데이트 수행
+                if (!newName.isEmpty()) {
+                    memberService.updateMemberName(targetPk, newName);
+                }
+                if (!newPhone.isEmpty()) {
+                    memberService.updateMemberPhone(targetPk, newPhone);
+                }
+                if (!newMajor.isEmpty()) {
+                    memberService.updateMemberMajor(targetPk, newMajor);
+                }
+
+                // 만약 학년(grade)이나 비밀번호 등도 수정 대상에 포함하고 싶다면 서비스에 메서드가 있을 때 아래와 같이 추가 가능합니다.
+                // if (!gradeStr.isEmpty()) {
+                //     int newGrade = Integer.parseInt(gradeStr);
+                //     memberService.updateMemberGrade(targetPk, newGrade);
+                // }
 
                 JOptionPane.showMessageDialog(this, "학생 정보가 수정되었습니다.");
-                loadMembers.run();
+                loadMembers.run(); // 테이블 새로고침
+
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "수정 실패: " + ex.getMessage());
+                ex.printStackTrace();
             }
         });
 
