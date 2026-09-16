@@ -191,29 +191,31 @@ public class RegistrationDAO {
 
 
     //본인 수강신청 조회
-    public List<Registration> getMyRegistrations(int studentId) {
+    public List<Registration> getMyRegistrations(String studentId) {
         List<Registration> registrationList = new ArrayList<>();
 
         String searchSql = """
-                select r.member_id, m.name, r.lecture_id, l.lecture_name
+                select r.member_id, m.name, l.lecture_code, l.lecture_name, l.professor, l.credit
                 from registration r
                 join members m on r.member_id = m.id
                 join lectures l on r.lecture_id = l.id
-                where r.member_id = ?
+                where m.member_id = ?
                 """;
 
         try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(searchSql)) {
 
-            pstmt.setInt(1, studentId);
+            pstmt.setString(1, studentId);
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
                     registrationList.add(Registration.builder()
-                            .memberId(rs.getInt("member_id"))
+                            .memberId(rs.getString("member_id"))
                             .memberName(rs.getString("name"))
-                            .lectureId(rs.getInt("lecture_id"))
+                            .lectureCode(rs.getString("lecture_code"))
                             .lectureName(rs.getString("lecture_name"))
+                            .professor(rs.getString("professor"))
+                            .credit(rs.getInt("credit"))
                             .build());
                 }
             }
@@ -249,7 +251,7 @@ public class RegistrationDAO {
                 while (rs.next()) {
                     registrationList.add(Registration.builder()
                             .id(rs.getInt("id"))
-                            .memberId(rs.getInt("member_id"))
+                            .memberId(rs.getString("member_id"))
                             .memberName(rs.getString("name"))
                             .lectureId(rs.getInt("lecture_id"))
                             .lectureName(rs.getString("lecture_name"))

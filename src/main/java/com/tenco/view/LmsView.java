@@ -135,7 +135,7 @@ public class LmsView {
                     case 1 -> listLectures();
                     case 2 -> applyLecture();
                     case 3 -> printRegistrations(
-                            registrationService.getMyLectureList(loggedInMember.getId()));
+                            registrationService.getMyLectureList(loggedInMember.getMemberId()));
                     case 4 -> cancelRegistration();
                     default -> System.out.println("메뉴에 표시된 번호를 입력하세요.");
                 }
@@ -175,7 +175,7 @@ public class LmsView {
     }
 
     private void cancelRegistration() {
-        int memberId = loggedInMember.getId();
+        String memberId = loggedInMember.getMemberId();
         List<Registration> registrations = registrationService.getMyLectureList(memberId);
         if (registrations == null || registrations.isEmpty()) {
             System.out.println("취소할 수강신청 내역이 없습니다.");
@@ -212,8 +212,8 @@ public class LmsView {
                 System.out.printf("회원번호: %d | 학생: %s | ",
                         registration.getMemberId(), registration.getMemberName());
             }
-            System.out.printf("강의번호: %d | 강의명: %s%n",
-                    registration.getLectureId(), registration.getLectureName());
+            System.out.printf("강의코드: %s | 강의명: %s%n",
+                    registration.getLectureCode(), registration.getLectureName());
         }
     }
 
