@@ -99,17 +99,17 @@ public class RegistrationDAO {
 
     // 수강 신청 취소
 
+    // 수강 신청 취소
     public List<Registration> deleteRegistration(String memId, String lecId) throws SQLException {
         List<Registration> registrationList = new ArrayList<>();
 
-        //  DB 연결을 얻고 자동 커밋을 끈다
         Connection conn = null;
 
         try {
             conn = DatabaseUtil.getConnection();
             conn.setAutoCommit(false);
 
-            //  맴버ID로 수강신청내역 확인
+            // 1. 맴버ID로 수강신청내역 확인
             String chkSql = """
                     select * from registration 
                     where member_id = ?
@@ -124,7 +124,7 @@ public class RegistrationDAO {
                 }
             }
 
-            //  취소 하고싶은 수강ID 삭제
+            // 2. 취소 하고싶은 수강ID 삭제
             String deleteSql = """
                     delete from registration 
                     where member_id = ? and lecture_id = ?
@@ -135,9 +135,9 @@ public class RegistrationDAO {
                     where id = ?
                     """;
             String updateSql = """
-                            update lectures set available = true 
-                            where id = ?
-                            """;
+                    update lectures set available = true 
+                    where id = ?
+                    """;
 
             try (PreparedStatement deletePstmt = conn.prepareStatement(deleteSql)) {
                 deletePstmt.setString(1, memId);
@@ -146,6 +146,7 @@ public class RegistrationDAO {
                 if (rows == 0) {
                     throw new SQLException("존재하지 않는 강의입니다. ID : " + lecId);
                 }
+
                 // 삭제 후 lectures 조회해서 available false라면 true로 변경
                 boolean isAvailable = true;
                 try (PreparedStatement selectLecturePstmt = conn.prepareStatement(selectLectureSql)) {
@@ -163,26 +164,30 @@ public class RegistrationDAO {
                         updatePstmt.executeUpdate();
                     }
                 }
-
-
-            } catch (SQLException ex) {
-                throw new RuntimeException(ex);
             }
 
-
-            //  모두 성공시 commit 아니면 rollback
+            // 모두 성공시 commit
             conn.commit();
 
         } catch (Exception e) {
             if (conn != null) {
-                conn.rollback();
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
             }
-            throw new RuntimeException("수강 취소 처리 중 오류 발생");
-            //  자동커밋 켜기 conn 닫기
+            // 👉 e.getMessage()를 포함해서 던지도록 수정합니다!
+            e.printStackTrace();
+            throw new RuntimeException("수강 취소 실패: " + e.getMessage());
         } finally {
             if (conn != null) {
-                conn.setAutoCommit(true); // 다시 변경 반드시 처리
-                conn.close();
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
             }
         }
 
@@ -195,7 +200,7 @@ public class RegistrationDAO {
         List<Registration> registrationList = new ArrayList<>();
 
         String searchSql = """
-                select r.member_id, m.name, l.lecture_code, l.lecture_name, l.professor, l.credit
+                select m.member_id, m.name, r.lecture_id, l.lecture_code, l.lecture_name, l.professor, l.credit
                 from registration r
                 join members m on r.member_id = m.id
                 join lectures l on r.lecture_id = l.id
@@ -212,6 +217,7 @@ public class RegistrationDAO {
                     registrationList.add(Registration.builder()
                             .memberId(rs.getString("member_id"))
                             .memberName(rs.getString("name"))
+                            .lectureId(rs.getInt("lecture_id"))
                             .lectureCode(rs.getString("lecture_code"))
                             .lectureName(rs.getString("lecture_name"))
                             .professor(rs.getString("professor"))
