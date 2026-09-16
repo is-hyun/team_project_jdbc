@@ -14,19 +14,19 @@ import java.util.List;
 public class RegistrationDAO {
 
     //수강 신청
+    // 수강 신청 (동시성 제어 적용)
     public void registerLecture(String memId, String lecId) throws SQLException {
-        // [처리 순서]
-
-        // 1. DB 연결을 얻고 자동 커밋을 끈다
         Connection conn = null;
         try {
             conn = DatabaseUtil.getConnection();
             conn.setAutoCommit(false);
 
-            // 2. 강의가 존재하고 수강신청이 가능한 상태인지 확인 -- SELECT (정원초과 상태 필요해 보임)
+            // 1. [핵심] FOR UPDATE를 붙여서 다른 트랜잭션이 이 행을 동시에 수정/조회하지 못하도록 락을 겁니다.
             String chkSql = """
-                    SELECT available FROM lectures WHERE id = ?
+                    SELECT available, capacity FROM lectures WHERE id = ? FOR UPDATE
                     """;
+
+            int capacity = 0;
             try (PreparedStatement checkPstmt = conn.prepareStatement(chkSql)) {
                 checkPstmt.setString(1, lecId);
                 try (ResultSet rs = checkPstmt.executeQuery()) {
@@ -36,10 +36,34 @@ public class RegistrationDAO {
                     if (!rs.getBoolean("available")) {
                         throw new SQLException("현재 정원이 초과 되었습니다.");
                     }
+                    capacity = rs.getInt("capacity");
                 }
             }
 
-            // 학생ID가 존재하는지 확인
+            // 2. 현재 실제 수강신청 인원을 락이 걸린 상태에서 안전하게 다시 카운트합니다.
+            String countSql = """
+                    SELECT COUNT(*) AS cnt FROM registration WHERE lecture_id = ?
+                    """;
+            try (PreparedStatement countPstmt = conn.prepareStatement(countSql)) {
+                countPstmt.setString(1, lecId);
+                try (ResultSet rs = countPstmt.executeQuery()) {
+                    if (rs.next()) {
+                        int currentCount = rs.getInt("cnt");
+                        if (currentCount >= capacity) {
+                            // 정원이 찼다면 수강신청 불가능 상태로 업데이트 후 예외 발생
+                            String updateFullSql = "UPDATE lectures SET available = false WHERE id = ?";
+                            try (PreparedStatement updatePstmt = conn.prepareStatement(updateFullSql)) {
+                                updatePstmt.setString(1, lecId);
+                                updatePstmt.executeUpdate();
+                            }
+                            conn.commit(); // 상태 변경 반영
+                            throw new SQLException("정원이 초과되어 수강신청할 수 없습니다.");
+                        }
+                    }
+                }
+            }
+
+            // 3. 학생ID가 존재하는지 확인
             String memberChkSql = """
                     SELECT id FROM members WHERE id = ?
                     """;
@@ -52,7 +76,7 @@ public class RegistrationDAO {
                 }
             }
 
-            // 3. 수강 신청 -- INSERT
+            // 4. 수강 신청 -- INSERT
             String regSql = """
                     INSERT INTO registration (member_id, lecture_id)
                     VALUES (?, ?)
@@ -60,11 +84,10 @@ public class RegistrationDAO {
             try (PreparedStatement regPstmt = conn.prepareStatement(regSql)) {
                 regPstmt.setString(1, memId);
                 regPstmt.setString(2, lecId);
-
                 regPstmt.executeUpdate();
             }
 
-            // 4. 정원초과시 수강신청 불가능 상태로 변경 -- UPDATE
+            // 5. 신청 직후 정원이 꽉 찼는지 확인하여 available을 false로 갱신
             String overRegSql = """
                     UPDATE lectures l
                     SET l.available = false
@@ -72,29 +95,32 @@ public class RegistrationDAO {
                     AND (SELECT COUNT(*) FROM registration r WHERE r.lecture_id = l.id) >= l.capacity
                     """;
             try (PreparedStatement overRegPstmt = conn.prepareStatement(overRegSql)) {
-
                 overRegPstmt.setString(1, lecId);
                 overRegPstmt.executeUpdate();
-
             }
-            // 5. 2 ~ 4 이 모두 성공하면 commit, 하나라도 실패하면 rollback
-            conn.commit();
 
-            // 6. 자동 커밋을 원래대로 되돌리고 연결을 닫는다.
+            // 6. 모든 과정이 성공하면 커밋
+            conn.commit();
 
         } catch (SQLException e) {
             if (conn != null) {
-                conn.rollback();
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
             }
-            throw new RuntimeException(e);
+            throw new RuntimeException(e.getMessage());
         } finally {
             if (conn != null) {
-                conn.setAutoCommit(true); // 다시 변경 반드시 처리
-                conn.close();
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
             }
         }
-
-
     }
 
     // 수강 신청 취소
