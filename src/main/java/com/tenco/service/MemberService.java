@@ -42,6 +42,24 @@ public class MemberService {
 
     학생 비밀번호 수정 (학생 only) - updateMemberPassword
     필요 매개변수 : id, password(새로 입력한)
+
+    학생 학번 수정 (관리자 only) - updateMemberPassword
+    필요 매개변수 : id, memberId
+
+    학생 이름 수정 (관리자 only) - updateMemberId
+    필요 매개변수 : id, name
+
+    학생 전화번호 수정 (관리자 only) - updateMemberPhone
+    필요 매개변수 : id, phone
+
+    학생 전공 수정 (관리자 only) - updateMemberMajor
+    필요 매개변수 : id, major
+
+    학생 삭제 (관리자 only)- deleteMember
+    필요 매개변수 : id
+
+
+
      */
 
     private final MembersDAO membersDAO = new MembersDAO();
@@ -146,7 +164,7 @@ public class MemberService {
             throw new SQLException("변경할 학번을 입력해주세요.");
         }
 
-        return membersDAO.updateMemberPassword(targetId, newMemberId);
+        return membersDAO.updateMemberId(targetId, newMemberId);
     }
 
     //    학생 이름 변경 (관리자)
@@ -159,7 +177,7 @@ public class MemberService {
             throw new SQLException("변경할 이름을 입력해주세요.");
         }
 
-        return membersDAO.updateMemberPassword(targetId, newName);
+        return membersDAO.updateMemberName(targetId, newName);
     }
 
     //    학생 전화번호 변경 (관리자)
@@ -172,7 +190,7 @@ public class MemberService {
             throw new SQLException("변경할 번호를 입력해주세요.");
         }
 
-        return membersDAO.updateMemberPassword(targetId, newPhone);
+        return membersDAO.updateMemberPhone(targetId, newPhone);
     }
 
     //    학생 학과 변경 (관리자)
@@ -185,7 +203,7 @@ public class MemberService {
             throw new SQLException("변경할 번호를 입력해주세요.");
         }
 
-        return membersDAO.updateMemberPassword(targetId, newMajor);
+        return membersDAO.updateMemberMajor(targetId, newMajor);
     }
 
 
@@ -214,4 +232,5 @@ public class MemberService {
         // 특수문자 최소 1개 포함
         return password.matches(".*[!@#$%^&*(),.?\":{}|<>].*");
     }
+
 }
