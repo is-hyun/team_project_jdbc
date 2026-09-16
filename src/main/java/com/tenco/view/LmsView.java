@@ -112,29 +112,31 @@ public class LmsView {
             System.out.println("\n=== 수강신청 관련 메뉴 ===");
             System.out.println("1. 강의 목록 조회");
             if (loggedInMember.isAdmin()) {
-                System.out.println("4. 전체 수강신청 조회");
+                System.out.println("2. 전체 수강신청 조회");
             } else {
                 System.out.println("2. 수강신청");
                 System.out.println("3. 내 수강신청 조회");
-                System.out.println("5. 내 수강취소");
+                System.out.println("4. 내 수강취소");
             }
             System.out.println("0. 이전 메뉴");
             int choice = readInt("선택: ");
             if (choice == 0) return;
-            if (choice == 4 && !requireAdmin()) continue;
-            if (loggedInMember.isAdmin() && (choice == 2 || choice == 3 || choice == 5)) {
-                System.out.println("학생만 사용할 수 있는 메뉴입니다.");
-                continue;
-            }
             try {
+                if (loggedInMember.isAdmin()) {
+                    switch (choice) {
+                        case 1 -> listLectures();
+                        case 2 -> printRegistrations(
+                                registrationService.getAllLectureList(loggedInMember));
+                        default -> System.out.println("메뉴에 표시된 번호를 입력하세요.");
+                    }
+                    continue;
+                }
                 switch (choice) {
                     case 1 -> listLectures();
                     case 2 -> applyLecture();
                     case 3 -> printRegistrations(
                             registrationService.getMyLectureList(loggedInMember.getMemberId()));
-                    case 4 -> printRegistrations(
-                            registrationService.getAllLectureList(loggedInMember));
-                    case 5 -> cancelRegistration();
+                    case 4 -> cancelRegistration();
                     default -> System.out.println("메뉴에 표시된 번호를 입력하세요.");
                 }
             } catch (RuntimeException | SQLException e) {
@@ -151,6 +153,19 @@ public class LmsView {
         }
         for (Lectures lecture : lecturesService.searchLectures(code)) {
             if (code.equals(lecture.getLectureCode())) {
+                List<Registration> registrations =
+                        registrationService.getMyLectureList(loggedInMember.getId());
+                if (registrations == null) return;
+                for (Registration registration : registrations) {
+                    if (registration.getLectureId() == lecture.getId()) {
+                        System.out.println("이미 수강신청한 과목입니다.");
+                        return;
+                    }
+                }
+                if (!lecture.isAvailable()) {
+                    System.out.println("수강인원초과로 신청할 수 없습니다.");
+                    return;
+                }
                 registrationService.applyLecture(
                         String.valueOf(loggedInMember.getId()), String.valueOf(lecture.getId()));
                 return;
@@ -271,13 +286,20 @@ public class LmsView {
                 System.out.println("5. 학생 정보 수정");
                 System.out.println("6. 학생 삭제");
             } else {
-                System.out.println("7. 내 비밀번호 변경");
+                System.out.println("2. 내 비밀번호 변경");
             }
             System.out.println("0. 이전 메뉴");
             int choice = readInt("선택: ");
             if (choice == 0) return;
-            if (choice >= 2 && choice <= 6 && !requireAdmin()) continue;
             try {
+                if (!loggedInMember.isAdmin()) {
+                    switch (choice) {
+                        case 1 -> searchMember();
+                        case 2 -> updateMyPassword();
+                        default -> System.out.println("메뉴에 표시된 번호를 입력하세요.");
+                    }
+                    continue;
+                }
                 switch (choice) {
                     case 1 -> searchMember();
                     case 2 -> listStudents();
@@ -285,7 +307,6 @@ public class LmsView {
                     case 4 -> registerMember();
                     case 5 -> updateMember();
                     case 6 -> deleteMember();
-                    case 7 -> updateMyPassword();
                     default -> System.out.println("메뉴에 표시된 번호를 입력하세요.");
                 }
             } catch (RuntimeException | SQLException e) {
@@ -411,7 +432,7 @@ public class LmsView {
                     lecture.getProfessor(),
                     lecture.getCredit(),
                     lecture.getCapacity(),
-                    lecture.isAvailable() ? "개설중" : "폐강");
+                    lecture.isAvailable() ? "개설중" : "수강인원초과");
         }
     }
 
@@ -544,7 +565,7 @@ public class LmsView {
         switch (choice) {
             case 1 -> updated = memberService.updateMemberId(student.getId(), readRequiredText("새 학번: "));
             case 2 -> updated = memberService.updateMemberName(student.getId(), readRequiredText("새 이름: "));
-            case 3 -> updated = memberService.updateMemberPhone(student.getId(), readRequiredText("새 전화번호: "));
+            case 3 -> updated = memberService.updateMemberPhone(student.getId(), readRequiredText("새 전화번호 (숫자 11자리): "));
             case 4 -> updated = memberService.updateMemberMajor(student.getId(), readRequiredText("새 학과: "));
             default -> {
                 System.out.println("메뉴에 표시된 번호를 입력하세요.");
@@ -624,6 +645,9 @@ public class LmsView {
     // =========================================================
     private void updateScore() throws SQLException {
         String memberId = readRequiredText("학생 아이디: ");
+        if (memberService.getMembersById(memberId) == null) {
+            throw new SQLException("일치하는 아이디가 없습니다.");
+        }
         String lectureCode = readRequiredText("강의코드: ");
         int score = readInt("수정 점수(0~100): ");
 
