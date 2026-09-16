@@ -8,9 +8,11 @@ import lombok.*;
 @Builder
 public class Registration {
     private int id;
-    private int memberId;
+    private String memberId;
     private String memberName;
+    private String lectureCode;
     private String lectureName;
+    private String professor;
+    private int credit;
     private int lectureId;
-
 }

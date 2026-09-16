@@ -27,10 +27,10 @@ public class RegistrationService {
     }
 
     // 내 수강신청 조회
-    public List<Registration> getMyLectureList(int studentId) {
-        Members member = memberDAO.searchMembersById(studentId);
+    public List<Registration> getMyLectureList(String studentId) {
+        Members member = memberDAO.searchMembersByMemberId(studentId);
         if (member == null) {
-            System.out.println("존재하지 않는 회원 정보입니다. (ID: " + studentId + ")");
+            System.out.println("존재하지 않는 회원 정보입니다. (학번: " + studentId + ")");
             return null;
         }
         return registrationDAO.getMyRegistrations(studentId);
