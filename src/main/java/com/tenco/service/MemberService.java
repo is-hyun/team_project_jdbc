@@ -224,7 +224,7 @@ public class MemberService {
     }
 
     //    비밀번호 검증(8자이상 + 특수문자 포함)
-    private boolean isValidPassword(String password) {
+    public boolean isValidPassword(String password) {
         if (password == null || password.length() < 8) {
             return false;
         }

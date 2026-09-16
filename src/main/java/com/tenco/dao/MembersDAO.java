@@ -81,7 +81,7 @@ public class MembersDAO {
     public Members searchMembersByMemberId(String memberId) {
         String sql = """
                 select
-                    m.id, m.member_id,
+                    m.id, m.member_id, m.admin,
                     m.name,
                     m.phone,
                     m.major,
@@ -91,7 +91,7 @@ public class MembersDAO {
                 left join scores s
                 on m.id = s.member_id
                 where m.member_id = ?
-                group by m.id, m.member_id, m.name, m.phone, m.major, m.grade;
+                group by m.id, m.member_id, m.admin, m.name, m.phone, m.major, m.grade;
                 """;
 
         try (Connection connection = DatabaseUtil.getConnection()) {
@@ -103,6 +103,7 @@ public class MembersDAO {
                 return Members.builder()
                         .id(rs.getInt("id"))
                         .memberId(rs.getString("member_id"))
+                        .admin(rs.getBoolean("admin"))
                         .name(rs.getString("name"))
                         .phone(rs.getString("phone"))
                         .major(rs.getString("major"))

@@ -2,7 +2,6 @@ package com.tenco.view;
 
 import com.tenco.dao.MembersDAO;
 import com.tenco.dao.RegistrationDAO;
-import com.tenco.dao.ScoreDAO;
 import com.tenco.dto.Lectures;
 import com.tenco.dto.Members;
 import com.tenco.dto.Registration;
@@ -24,8 +23,6 @@ public class LmsView {
     private final MembersDAO membersDAO = new MembersDAO();
     private final RegistrationService registrationService =
             new RegistrationService(new RegistrationDAO(), membersDAO);
-    // ScoreService.updateScore의 학생/강의 조회 구현 전까지 기존 수정 동작을 유지한다.
-    private final ScoreDAO scoreDAO = new ScoreDAO();
     private final Scanner scanner = new Scanner(System.in);
     private final MemberService memberService = new MemberService();
     private Members loggedInMember;
@@ -114,16 +111,21 @@ public class LmsView {
         while (true) {
             System.out.println("\n=== 수강신청 관련 메뉴 ===");
             System.out.println("1. 강의 목록 조회");
-            System.out.println("2. 수강신청");
-            System.out.println("3. 내 수강신청 조회");
             if (loggedInMember.isAdmin()) {
                 System.out.println("4. 전체 수강신청 조회");
+            } else {
+                System.out.println("2. 수강신청");
+                System.out.println("3. 내 수강신청 조회");
+                System.out.println("5. 내 수강취소");
             }
-            System.out.println("5. 내 수강취소");
             System.out.println("0. 이전 메뉴");
             int choice = readInt("선택: ");
             if (choice == 0) return;
             if (choice == 4 && !requireAdmin()) continue;
+            if (loggedInMember.isAdmin() && (choice == 2 || choice == 3 || choice == 5)) {
+                System.out.println("학생만 사용할 수 있는 메뉴입니다.");
+                continue;
+            }
             try {
                 switch (choice) {
                     case 1 -> listLectures();
@@ -191,9 +193,12 @@ public class LmsView {
             return;
         }
         for (Registration registration : registrations) {
-            System.out.printf("신청번호: %d | 회원번호: %d | 학생: %s | 강의번호: %d%n",
-                    registration.getId(), registration.getMemberId(),
-                    registration.getMemberName(), registration.getLectureId());
+            if (loggedInMember.isAdmin()) {
+                System.out.printf("회원번호: %d | 학생: %s | ",
+                        registration.getMemberId(), registration.getMemberName());
+            }
+            System.out.printf("강의번호: %d | 강의명: %s%n",
+                    registration.getLectureId(), registration.getLectureName());
         }
     }
 
@@ -233,6 +238,8 @@ public class LmsView {
             if (loggedInMember.isAdmin()) {
                 System.out.println("2. 전체 성적 조회");
                 System.out.println("3. 성적 수정");
+                System.out.println("4. 성적 추가");
+                System.out.println("5. 성적 삭제");
             }
             System.out.println("0. 이전 메뉴");
             int choice = readInt("선택: ");
@@ -243,8 +250,8 @@ public class LmsView {
                     case 1 -> searchMemberScores();
                     case 2 -> listAllScores();
                     case 3 -> updateScore();
-                    // 서비스의 대상 조회 및 DAO의 SQL 실행 구현이 완료되면 연결한다.
-                    case 4, 5 -> System.out.println("아직 사용할 수 없는 기능입니다.");
+                    case 4 -> addScore();
+                    case 5 -> deleteScore();
                     default -> System.out.println("메뉴에 표시된 번호를 입력하세요.");
                 }
             } catch (RuntimeException | SQLException e) {
@@ -261,17 +268,24 @@ public class LmsView {
                 System.out.println("2. 학생 목록 조회");
                 System.out.println("3. 학생 이름으로 조회");
                 System.out.println("4. 학생 등록");
+                System.out.println("5. 학생 정보 수정");
+                System.out.println("6. 학생 삭제");
+            } else {
+                System.out.println("7. 내 비밀번호 변경");
             }
             System.out.println("0. 이전 메뉴");
             int choice = readInt("선택: ");
             if (choice == 0) return;
-            if (choice >= 2 && choice <= 4 && !requireAdmin()) continue;
+            if (choice >= 2 && choice <= 6 && !requireAdmin()) continue;
             try {
                 switch (choice) {
                     case 1 -> searchMember();
                     case 2 -> listStudents();
                     case 3 -> searchMembersByName();
                     case 4 -> registerMember();
+                    case 5 -> updateMember();
+                    case 6 -> deleteMember();
+                    case 7 -> updateMyPassword();
                     default -> System.out.println("메뉴에 표시된 번호를 입력하세요.");
                 }
             } catch (RuntimeException | SQLException e) {
@@ -477,18 +491,80 @@ public class LmsView {
 
     private void registerMember() throws SQLException {
         String memberId = readRequiredText("학생 아이디: ");
-        System.out.print("비밀번호: ");
-        String password = scanner.nextLine();
-        while (password.isBlank()) {
-            System.out.print("비밀번호를 입력해주세요: ");
-            password = scanner.nextLine();
-        }
+        String password = readNewPassword();
         String name = readRequiredText("이름: ");
         String phone = readRequiredText("전화번호: ");
         String major = readRequiredText("전공: ");
         int grade = readPositiveInt("학년: ");
         memberService.registerMember(memberId, password, name, phone, major, grade);
         System.out.println("학생이 등록되었습니다.");
+    }
+
+    private String readNewPassword() {
+        while (true) {
+            System.out.print("비밀번호 (8자 이상, 특수문자 1자 이상 포함): ");
+            String password = scanner.nextLine();
+            if (!memberService.isValidPassword(password)) {
+                System.out.println("8자 이상이며 특수문자(!@#$%^&*(),.?\":{}|<>)가 1자 이상 포함되어야 합니다.");
+                continue;
+            }
+            System.out.print("비밀번호 확인: ");
+            if (password.equals(scanner.nextLine())) return password;
+            System.out.println("비밀번호가 일치하지 않습니다. 다시 입력해주세요.");
+        }
+    }
+
+    private void updateMyPassword() throws SQLException {
+        if (loggedInMember.isAdmin()) {
+            System.out.println("학생만 사용할 수 있는 메뉴입니다.");
+            return;
+        }
+        String password = readNewPassword();
+        System.out.println(memberService.updateMemberPassword(loggedInMember.getId(), password)
+                ? "비밀번호가 변경되었습니다." : "비밀번호를 변경하지 못했습니다.");
+    }
+
+    private Members selectStudent() throws SQLException {
+        Members student = memberService.getMembersById(readRequiredText("학생 학번(아이디): "));
+        if (student == null || student.isAdmin()) {
+            System.out.println("해당 학번의 학생이 없습니다.");
+            return null;
+        }
+        printMember(student);
+        return student;
+    }
+
+    private void updateMember() throws SQLException {
+        Members student = selectStudent();
+        if (student == null) return;
+        System.out.println("1. 학번 수정\n2. 이름 수정\n3. 전화번호 수정\n4. 학과 수정\n0. 이전 메뉴");
+        int choice = readInt("선택: ");
+        if (choice == 0) return;
+        boolean updated;
+        switch (choice) {
+            case 1 -> updated = memberService.updateMemberId(student.getId(), readRequiredText("새 학번: "));
+            case 2 -> updated = memberService.updateMemberName(student.getId(), readRequiredText("새 이름: "));
+            case 3 -> updated = memberService.updateMemberPhone(student.getId(), readRequiredText("새 전화번호: "));
+            case 4 -> updated = memberService.updateMemberMajor(student.getId(), readRequiredText("새 학과: "));
+            default -> {
+                System.out.println("메뉴에 표시된 번호를 입력하세요.");
+                return;
+            }
+        }
+        System.out.println(updated ? "학생 정보가 수정되었습니다." : "학생 정보를 수정하지 못했습니다.");
+    }
+
+    private void deleteMember() throws SQLException {
+        Members student = selectStudent();
+        if (student == null) return;
+        String confirmation = readText("학생 [" + student.getMemberId() + "] " + student.getName()
+                + "님을 삭제하시겠습니까? (예 / 아니오): ");
+        if (!"예".equals(confirmation)) {
+            System.out.println("학생 삭제를 취소했습니다.");
+            return;
+        }
+        System.out.println(memberService.deleteMember(student.getId())
+                ? "학생이 삭제되었습니다." : "학생을 삭제하지 못했습니다.");
     }
 
     private String readRequiredText(String prompt) {
@@ -524,11 +600,9 @@ public class LmsView {
     // ScoreService.getScoresById(String id) 를 사용한다.
     // =========================================================
     private void searchMemberScores() throws SQLException {
-        Integer memberId = loggedInMember.isAdmin() ? findStudentIdByName() : Integer.valueOf(loggedInMember.getId());
-        if (memberId == null) {
-            return;
-        }
-        List<Scores> scores = scoreService.getScoresById(String.valueOf(memberId));
+        String memberId = loggedInMember.isAdmin()
+                ? readRequiredText("학생 아이디: ") : loggedInMember.getMemberId();
+        List<Scores> scores = scoreService.getScoresById(memberId);
 
         System.out.println("\n=== 학생 성적 ===");
         if (scores.isEmpty()) {
@@ -546,17 +620,11 @@ public class LmsView {
 
     // =========================================================
     // 성적 수정
-    // 선택한 학생과 강의의 ID를 객체에 담아 ScoreDAO에 전달한다.
+    // 학생 로그인 아이디와 강의코드를 서비스에 전달한다.
     // =========================================================
     private void updateScore() throws SQLException {
-        Integer memberId = findStudentIdByName();
-        if (memberId == null) {
-            return;
-        }
-        Integer lectureId = findLectureIdByName();
-        if (lectureId == null) {
-            return;
-        }
+        String memberId = readRequiredText("학생 아이디: ");
+        String lectureCode = readRequiredText("강의코드: ");
         int score = readInt("수정 점수(0~100): ");
 
         if (score < 0 || score > 100) {
@@ -564,45 +632,44 @@ public class LmsView {
             return;
         }
 
-        // 받아온 Integer
-        Members member = Members.builder().id(memberId).build();
-        Lectures lecture = Lectures.builder().id(lectureId).build();
-        scoreDAO.updateScore(member, lecture, score);
+        if (!hasScore(memberId, lectureCode)) return;
+        scoreService.updateScore(memberId, lectureCode, score);
         System.out.println("성적이 수정되었습니다.");
     }
 
-    // 이름으로 찾은 내부 ID를 기존 DAO에 전달한다. 같은 이름이면 첫 번째 결과를 사용한다.
-    private Integer findStudentIdByName() {
-        System.out.print("학생 이름: ");
-        String name = scanner.nextLine().trim();
-        if (name.isEmpty()) {
-            System.out.println("학생 이름을 입력해주세요.");
-            return null;
-        }
-        for (Members student : memberService.getAllMembers()) {
-            if (name.equals(student.getName())) {
-                return student.getId();
+    private void addScore() throws SQLException {
+        String memberId = readRequiredText("학생 아이디: ");
+        String lectureCode = readRequiredText("강의코드: ");
+        for (Scores score : scoreService.getScoresById(memberId)) {
+            if (lectureCode.equals(score.getLectureCode())) {
+                System.out.println("이미 등록된 성적입니다. 성적 수정 메뉴를 이용해주세요.");
+                return;
             }
         }
-        System.out.println("해당 이름의 학생이 없습니다.");
-        return null;
+        scoreService.addScore(memberId, lectureCode);
+        System.out.println("성적 항목이 추가되었습니다. 성적 수정 메뉴에서 점수를 입력해주세요.");
     }
 
-    // 강의명으로 강의에 대한 정보를 검색한다.
-    private Integer findLectureIdByName() throws SQLException {
-        System.out.print("강의명: ");
-        String name = scanner.nextLine().trim();
-        if (name.isEmpty()) {
-            System.out.println("강의명을 입력해주세요.");
-            return null;
+    private void deleteScore() throws SQLException {
+        String memberId = readRequiredText("학생 아이디: ");
+        String lectureCode = readRequiredText("강의코드: ");
+        if (!hasScore(memberId, lectureCode)) return;
+        String confirmation = readText("학생 [" + memberId + "]의 [" + lectureCode
+                + "] 성적을 삭제하시겠습니까? (예 / 아니오): ");
+        if (!"예".equals(confirmation)) {
+            System.out.println("성적 삭제를 취소했습니다.");
+            return;
         }
-        for (Lectures lecture : lecturesService.searchLectures(name)) {
-            if (name.equals(lecture.getLectureName())) {
-                return lecture.getId();
-            }
+        scoreService.deleteScore(memberId, lectureCode);
+        System.out.println("성적이 삭제되었습니다.");
+    }
+
+    private boolean hasScore(String memberId, String lectureCode) throws SQLException {
+        for (Scores score : scoreService.getScoresById(memberId)) {
+            if (lectureCode.equals(score.getLectureCode())) return true;
         }
-        System.out.println("해당 이름의 강의가 없습니다.");
-        return null;
+        System.out.println("해당 학생의 강의 성적이 없습니다.");
+        return false;
     }
 
     // =========================================================

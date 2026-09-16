@@ -36,44 +36,62 @@ public class ScoreService {
     }
 
     // 성적 수정
-    public void updateScore(String memberName, String lectureName, Integer score) throws SQLException {
-        if (memberName == null || memberName.trim().isEmpty() ||
-                lectureName == null || lectureName.trim().isEmpty()){
-            throw new SQLException("이름과 과목을 제대로 입력해주세요!");
+    public void updateScore(String memberId, String lectureCode, Integer score) throws SQLException {
+        if (memberId == null || memberId.trim().isEmpty() ||
+                lectureCode == null || lectureCode.trim().isEmpty()){
+            throw new SQLException("학생 아이디와 강의코드를 제대로 입력해주세요!");
         }
 
         if (score == null || score < 0 || score > 100){
             throw new SQLException("성적을 제대로 입력해주세요");
         }
 
-        Members member = membersDAO.searchMembersByMemberId(memberName);
-        Lectures lecture = lecturesDAO.getLectureByFullname(lectureName);
+        Members member = membersDAO.searchMembersByMemberId(memberId);
+        if (member == null) {
+            throw new SQLException("해당 아이디의 학생이 없습니다.");
+        }
+        Lectures lecture = lecturesDAO.getLectureByCode(lectureCode);
+        if (lecture == null) {
+            throw new SQLException("해당 코드의 강의가 없습니다.");
+        }
 
         scoreDAO.updateScore(member, lecture, score);
     }
 
     // 성적 추가
-    public void addScore(String memberName, String lectureName) throws SQLException {
-        if (memberName == null || memberName.trim().isEmpty() ||
-                lectureName == null || lectureName.trim().isEmpty()){
-            throw new SQLException("이름과 과목을 제대로 입력해주세요!");
+    public void addScore(String memberId, String lectureCode) throws SQLException {
+        if (memberId == null || memberId.trim().isEmpty() ||
+                lectureCode == null || lectureCode.trim().isEmpty()){
+            throw new SQLException("학생 아이디와 강의코드를 제대로 입력해주세요!");
         }
 
-        Members member = membersDAO.searchMembersByMemberId(memberName);
-        Lectures lecture = lecturesDAO.getLectureByFullname(lectureName);
+        Members member = membersDAO.searchMembersByMemberId(memberId);
+        if (member == null) {
+            throw new SQLException("해당 아이디의 학생이 없습니다.");
+        }
+        Lectures lecture = lecturesDAO.getLectureByCode(lectureCode);
+        if (lecture == null) {
+            throw new SQLException("해당 코드의 강의가 없습니다.");
+        }
 
         scoreDAO.addScore(member, lecture);
     }
 
     // 성적 삭제
-    public void deleteScore(String memberName, String lectureName) throws SQLException {
-        if (memberName == null || memberName.trim().isEmpty() ||
-                lectureName == null || lectureName.trim().isEmpty()){
-            throw new SQLException("이름과 과목을 제대로 입력해주세요!");
+    public void deleteScore(String memberId, String lectureCode) throws SQLException {
+        if (memberId == null || memberId.trim().isEmpty() ||
+                lectureCode == null || lectureCode.trim().isEmpty()){
+            throw new SQLException("학생 아이디와 강의코드를 제대로 입력해주세요!");
         }
 
-        Members member = membersDAO.searchMembersByMemberId(memberName);
-        Lectures lecture = lecturesDAO.getLectureByFullname(lectureName);
+        Members member = membersDAO.searchMembersByMemberId(memberId);
+        if (member == null) {
+            throw new SQLException("해당 아이디의 학생이 없습니다.");
+        }
+        Lectures lecture = lecturesDAO.getLectureByCode(lectureCode);
+        if (lecture == null) {
+            throw new SQLException("해당 코드의 강의가 없습니다.");
+        }
 
         scoreDAO.deleteScore(member, lecture);
     }
