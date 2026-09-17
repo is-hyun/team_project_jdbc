@@ -209,7 +209,7 @@ public class LmsView {
         }
         for (Registration registration : registrations) {
             if (loggedInMember.isAdmin()) {
-                System.out.printf("회원번호: %d | 학생: %s | ",
+                System.out.printf("회원번호: %s | 학생: %s | ",
                         registration.getMemberId(), registration.getMemberName());
             }
             System.out.printf("강의코드: %s | 강의명: %s%n",
