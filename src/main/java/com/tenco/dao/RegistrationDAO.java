@@ -292,7 +292,7 @@ public class RegistrationDAO {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("조회 실패 : " + e);
+            throw new RuntimeException("수강신청 목록 조회 중 DB 오류가 발생했습니다.", e);
         }
 
 
