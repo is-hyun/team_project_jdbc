@@ -67,9 +67,9 @@ public class MemberService {
     //    학생 조회
     // ===========================================================================================================================
     //    1. id로 조회
-    public Members getSelfInfoById(int id) throws SQLException {
+    public Members getSelfInfoById(int id){
         if (id <= 0) {
-            throw new SQLException("로그인 후 이용 가능합니다.");
+            throw new IllegalStateException("로그인 후 이용 가능합니다.");
         }
 
         return membersDAO.searchMembersById(id);

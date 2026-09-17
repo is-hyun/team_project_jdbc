@@ -18,9 +18,9 @@ public class LecturesService {
     }
 
     // 2. 강의 목록 검색
-    public List<Lectures> searchLectures(String keyword) throws SQLException {
+    public List<Lectures> searchLectures(String keyword) {
         if (keyword == null || keyword.trim().isEmpty()) {
-            throw new SQLException("검색어를 입력해 주세요");
+            throw new IllegalArgumentException("검색어를 입력해 주세요");
         }
         return lecturesDAO.searchLectures(keyword);
     }
@@ -71,7 +71,7 @@ public class LecturesService {
     }
 
     // 5. 강의 삭제 (관리자메뉴)
-    public boolean deleteLectures(String code) {
+    public boolean deleteLectures(String code) throws SQLException {
         if (code == null || code.trim().isEmpty()) {
             return false;
         }

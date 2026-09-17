@@ -3,10 +3,7 @@ package com.tenco.dao;
 import com.tenco.dto.Lectures;
 import com.tenco.util.DatabaseUtil;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -130,7 +127,7 @@ public class LecturesDAO {
     }
 
     // 강의 삭제 기능 (관리자)
-    public int deleteLectures(String code) {
+    public int deleteLectures(String code) throws SQLException {
         int rows = 0;
         String deletesql = """
                 DELETE FROM lectures
@@ -144,7 +141,7 @@ public class LecturesDAO {
             }
         } catch (SQLException e) {
             // TODO - 추후 토의 후 수정
-            System.out.println("데이터베이스 제약 조건으로 인해 삭제할 수 없습니다. (수강 중인 학생이 있을 수 있습니다.)");
+            throw new SQLException("데이터베이스 제약 조건으로 인해 삭제할 수 없습니다. (수강 중인 학생이 있을 수 있습니다.)");
         }
         return rows;
     }

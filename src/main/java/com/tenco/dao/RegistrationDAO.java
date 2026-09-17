@@ -15,7 +15,7 @@ public class RegistrationDAO {
 
     //수강 신청
     // 수강 신청 (동시성 제어 적용)
-    public void registerLecture(String memId, String lecId) throws SQLException {
+    public boolean registerLecture(String memId, String lecId) throws SQLException {
         Connection conn = null;
         try {
             conn = DatabaseUtil.getConnection();
@@ -34,7 +34,8 @@ public class RegistrationDAO {
                         throw new SQLException("존재하지 않는 강의입니다. 강의ID : " + lecId);
                     }
                     if (!rs.getBoolean("available")) {
-                        throw new SQLException("현재 정원이 초과 되었습니다.");
+                        return false;
+//                        throw new SQLException("현재 정원이 초과 되었습니다.");
                     }
                     capacity = rs.getInt("capacity");
                 }
@@ -57,7 +58,8 @@ public class RegistrationDAO {
                                 updatePstmt.executeUpdate();
                             }
                             conn.commit(); // 상태 변경 반영
-                            throw new SQLException("정원이 초과되어 수강신청할 수 없습니다.");
+                            return false;
+//                            throw new SQLException("정원이 초과되어 수강신청할 수 없습니다.");
                         }
                     }
                 }
@@ -101,6 +103,7 @@ public class RegistrationDAO {
 
             // 6. 모든 과정이 성공하면 커밋
             conn.commit();
+            return true;
 
         } catch (SQLException e) {
             if (conn != null) {
@@ -260,11 +263,11 @@ public class RegistrationDAO {
 
 
     //전체 조회 (관리자)
-    public List<Registration> getAllRegistrations(Members members) {
+    public List<Registration> getAllRegistrations(Members members) throws SQLException {
         List<Registration> registrationList = new ArrayList<>();
 
         String searchAllSql = """
-                select r.id, r.member_id, m.name, r.lecture_id, l.lecture_name
+                select r.id, r.member_id, m.name, r.lecture_id, l.lecture_code, l.lecture_name
                 from registration r
                 join members m on r.member_id = m.id
                 join lectures l on r.lecture_id = l.id
@@ -286,12 +289,13 @@ public class RegistrationDAO {
                             .memberId(rs.getString("member_id"))
                             .memberName(rs.getString("name"))
                             .lectureId(rs.getInt("lecture_id"))
+                            .lectureCode(rs.getString("lecture_code"))
                             .lectureName(rs.getString("lecture_name"))
                             .build());
                 }
             }
         } catch (SQLException e) {
-            System.err.println("조회 실패 : " + e);
+            throw new SQLException("조회 실패 : " + e);
         }
 
 

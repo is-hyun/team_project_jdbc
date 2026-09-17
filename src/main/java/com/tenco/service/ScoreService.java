@@ -41,9 +41,6 @@ public class ScoreService {
                 lectureCode == null || lectureCode.trim().isEmpty()){
             throw new SQLException("학생 아이디와 강의코드를 제대로 입력해주세요!");
         }
-
-
-
         Members member = membersDAO.searchMembersByMemberId(memberId);
         if (member == null) {
             throw new SQLException("해당 아이디의 학생이 없습니다.");
@@ -59,7 +56,7 @@ public class ScoreService {
         }
 
         if ( score < 0 || score > 100){
-            throw new SQLException("성적을 제대로 입력해주세요, 여긴가?");
+            throw new SQLException("성적을 제대로 입력해주세요.");
         }
 
         scoreDAO.updateScore(member, lecture, score);
