@@ -15,7 +15,7 @@ public class RegistrationDAO {
 
     //수강 신청
     // 수강 신청 (동시성 제어 적용)
-    public void registerLecture(String memId, String lecId) throws SQLException {
+    public boolean registerLecture(String memId, String lecId) throws SQLException {
         Connection conn = null;
         try {
             conn = DatabaseUtil.getConnection();
@@ -34,7 +34,8 @@ public class RegistrationDAO {
                         throw new SQLException("존재하지 않는 강의입니다. 강의ID : " + lecId);
                     }
                     if (!rs.getBoolean("available")) {
-                        throw new SQLException("현재 정원이 초과 되었습니다.");
+                        return false;
+//                        throw new SQLException("현재 정원이 초과 되었습니다.");
                     }
                     capacity = rs.getInt("capacity");
                 }
@@ -57,7 +58,8 @@ public class RegistrationDAO {
                                 updatePstmt.executeUpdate();
                             }
                             conn.commit(); // 상태 변경 반영
-                            throw new SQLException("정원이 초과되어 수강신청할 수 없습니다.");
+                            return false;
+//                            throw new SQLException("정원이 초과되어 수강신청할 수 없습니다.");
                         }
                     }
                 }
@@ -101,6 +103,7 @@ public class RegistrationDAO {
 
             // 6. 모든 과정이 성공하면 커밋
             conn.commit();
+            return true;
 
         } catch (SQLException e) {
             if (conn != null) {
