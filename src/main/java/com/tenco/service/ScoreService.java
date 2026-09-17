@@ -42,9 +42,7 @@ public class ScoreService {
             throw new SQLException("학생 아이디와 강의코드를 제대로 입력해주세요!");
         }
 
-        if (score == null || score < 0 || score > 100){
-            throw new SQLException("성적을 제대로 입력해주세요");
-        }
+
 
         Members member = membersDAO.searchMembersByMemberId(memberId);
         if (member == null) {
@@ -55,11 +53,20 @@ public class ScoreService {
             throw new SQLException("해당 코드의 강의가 없습니다.");
         }
 
+        if (score == null) {
+            scoreDAO.updateScore(member, lecture);
+            return;
+        }
+
+        if ( score < 0 || score > 100){
+            throw new SQLException("성적을 제대로 입력해주세요, 여긴가?");
+        }
+
         scoreDAO.updateScore(member, lecture, score);
     }
 
     // 성적 추가
-    public void addScore(String memberId, String lectureCode) throws SQLException {
+    public void addScore(String memberId, String lectureCode, Integer score) throws SQLException {
         if (memberId == null || memberId.trim().isEmpty() ||
                 lectureCode == null || lectureCode.trim().isEmpty()){
             throw new SQLException("학생 아이디와 강의코드를 제대로 입력해주세요!");
@@ -73,8 +80,16 @@ public class ScoreService {
         if (lecture == null) {
             throw new SQLException("해당 코드의 강의가 없습니다.");
         }
+        if (score == null){
+            scoreDAO.addScore(member, lecture);
+            return;
+        }
 
-        scoreDAO.addScore(member, lecture);
+        if (score < 0 || score > 100){
+            throw new SQLException("점수 입력이 잘못되었습니다. (1~100)로 입력해주세요");
+        }
+        scoreDAO.addScore(member, lecture, score);
+
     }
 
     // 성적 삭제

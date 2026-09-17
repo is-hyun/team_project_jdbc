@@ -77,6 +77,30 @@ public class ScoreDAO {
     }
 
     // 성적 수정
+    // null 값 입력
+    public void updateScore(Members member, Lectures lecture) throws SQLException {
+        Connection conn = DatabaseUtil.getConnection();
+
+        String sql = """
+                update scores
+                set score = null
+                where member_id = ?
+                and lecture_id = ?
+                """;
+
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, member.getId());
+            pstmt.setInt(2, lecture.getId());
+
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new SQLException(e);
+        } finally {
+            conn.close();
+        }
+
+    }
+
     public void updateScore(Members member, Lectures lecture, Integer score) throws SQLException {
         Connection conn = DatabaseUtil.getConnection();
 
@@ -144,6 +168,61 @@ public class ScoreDAO {
             try (PreparedStatement pstmt = conn.prepareStatement(insertSql)) {
                 pstmt.setInt(1, member.getId());
                 pstmt.setInt(2, lecture.getId());
+
+                pstmt.executeUpdate();
+            }
+            conn.commit();
+
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException rollbackException){
+                    e.addSuppressed(rollbackException);
+                }
+            }
+            throw e;
+        } finally {
+            if (conn != null) {
+                conn.setAutoCommit(true);
+                conn.close();
+            }
+        }
+    }
+
+    public void addScore(Members member, Lectures lecture, Integer score) throws SQLException {
+        Connection conn = null;
+
+        try {
+            conn = DatabaseUtil.getConnection();
+
+            conn.setAutoCommit(false);
+
+            String checkSql = """
+                    select *
+                    from registration
+                    where member_id = ?
+                    and lecture_id = ?
+                    """;
+            try (PreparedStatement pstmt = conn.prepareStatement(checkSql)) {
+                pstmt.setInt(1, member.getId());
+                pstmt.setInt(2, lecture.getId());
+
+                ResultSet rs = pstmt.executeQuery();
+
+                if (!rs.next()) {
+                    throw new SQLException("해당 과목을 수강하신 기록이 없습니다");
+                }
+            }
+
+            String insertSql = """
+                    insert into scores(member_id, lecture_id, score)
+                    values (?, ?, ?)
+                    """;
+            try (PreparedStatement pstmt = conn.prepareStatement(insertSql)) {
+                pstmt.setInt(1, member.getId());
+                pstmt.setInt(2, lecture.getId());
+                pstmt.setInt(3, score);
 
                 pstmt.executeUpdate();
             }
