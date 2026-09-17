@@ -163,7 +163,7 @@ public class LmsView {
                     }
                 }
                 if (!lecture.isAvailable()) {
-                    System.out.println("수강인원초과로 신청할 수 없습니다.");
+                    System.out.println("수강인원 초과로 신청할 수 없습니다.");
                     return;
                 }
                 registrationService.applyLecture(
