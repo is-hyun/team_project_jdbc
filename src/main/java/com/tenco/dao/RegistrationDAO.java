@@ -264,7 +264,7 @@ public class RegistrationDAO {
         List<Registration> registrationList = new ArrayList<>();
 
         String searchAllSql = """
-                select r.id, r.member_id, m.name, r.lecture_id, l.lecture_name
+                select r.id, r.member_id, m.name, r.lecture_id, l.lecture_code, l.lecture_name
                 from registration r
                 join members m on r.member_id = m.id
                 join lectures l on r.lecture_id = l.id
@@ -286,6 +286,7 @@ public class RegistrationDAO {
                             .memberId(rs.getString("member_id"))
                             .memberName(rs.getString("name"))
                             .lectureId(rs.getInt("lecture_id"))
+                            .lectureCode(rs.getString("lecture_code"))
                             .lectureName(rs.getString("lecture_name"))
                             .build());
                 }
