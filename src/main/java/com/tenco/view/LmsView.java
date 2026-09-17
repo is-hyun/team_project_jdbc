@@ -175,8 +175,8 @@ public class LmsView {
     }
 
     private void cancelRegistration() {
-        String memberId = loggedInMember.getMemberId();
-        List<Registration> registrations = registrationService.getMyLectureList(memberId);
+        String studentId = loggedInMember.getMemberId();
+        List<Registration> registrations = registrationService.getMyLectureList(studentId);
         if (registrations == null || registrations.isEmpty()) {
             System.out.println("취소할 수강신청 내역이 없습니다.");
             return;
@@ -186,15 +186,16 @@ public class LmsView {
         if (lectureId == 0) return;
 
         for (Registration registration : registrations) {
-            if (registration.getMemberId() == memberId && registration.getLectureId() == lectureId) {
+            if (studentId.equals(registration.getMemberId()) && registration.getLectureId() == lectureId) {
                 String confirmation = readText("해당 강의의 수강을 취소하시겠습니까? (예 / 아니오): ");
                 if (!"예".equals(confirmation)) {
                     System.out.println("수강취소를 중단했습니다.");
                     return;
                 }
+                // 조회에는 학번을, 삭제에는 members.id(PK)를 전달한다.
                 registrationService.deleteRegistration(
-                        String.valueOf(memberId), String.valueOf(lectureId));
-                printRegistrations(registrationService.getMyLectureList(memberId));
+                        String.valueOf(loggedInMember.getId()), String.valueOf(lectureId));
+                printRegistrations(registrationService.getMyLectureList(studentId));
                 return;
             }
         }
@@ -212,8 +213,8 @@ public class LmsView {
                 System.out.printf("회원번호: %s | 학생: %s | ",
                         registration.getMemberId(), registration.getMemberName());
             }
-            System.out.printf("강의코드: %s | 강의명: %s%n",
-                    registration.getLectureCode(), registration.getLectureName());
+            System.out.printf("강의번호: %d | 강의코드: %s | 강의명: %s%n",
+                    registration.getLectureId(), registration.getLectureCode(), registration.getLectureName());
         }
     }
 
@@ -483,7 +484,7 @@ public class LmsView {
     // =========================================================
     private void searchMember() throws SQLException {
         Members member = loggedInMember.isAdmin()
-                ? memberService.getMembersById(readText("학생 아이디: "))
+                ? memberService.getMembersById(readRequiredText("학생 아이디: "))
                 : memberService.getSelfInfoById(loggedInMember.getId());
 
         if (member == null) {
@@ -502,7 +503,7 @@ public class LmsView {
     }
 
     private void searchMembersByName() throws SQLException {
-        List<Members> students = memberService.getMembersByName(readText("학생 이름: "));
+        List<Members> students = memberService.getMembersByName(readRequiredText("학생 이름: "));
         if (students.isEmpty()) {
             System.out.println("해당 이름의 학생이 없습니다.");
             return;
@@ -646,7 +647,8 @@ public class LmsView {
     private void updateScore() throws SQLException {
         String memberId = readRequiredText("학생 아이디: ");
         if (memberService.getMembersById(memberId) == null) {
-            throw new SQLException("일치하는 아이디가 없습니다.");
+            System.out.println("일치하는 아이디가 없습니다.");
+            return;
         }
         String lectureCode = readRequiredText("강의코드: ");
         int score = readInt("수정 점수(0~100): ");
