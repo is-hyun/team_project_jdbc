@@ -553,7 +553,11 @@ public class MainFrame extends JFrame {
             try {
                 String mId = memIdF.getText().trim();
                 String lCode = lecCodeF.getText().trim();
-                int scoreVal = Integer.parseInt(scoreF.getText().trim());
+                String scoreText = scoreF.getText().trim();
+
+                Integer scoreVal = scoreText.isEmpty()
+                        ? null
+                        : Integer.parseInt(scoreText);
 
                 List<Scores> currentList = scoreService.getAllScores();
                 boolean alreadyExists = currentList.stream()
@@ -564,8 +568,7 @@ public class MainFrame extends JFrame {
                     return;
                 }
 
-                scoreService.addScore(mId, lCode);
-                scoreService.updateScore(mId, lCode, scoreVal);
+                scoreService.addScore(mId, lCode, scoreVal);
 
                 JOptionPane.showMessageDialog(this, "성적이 등록되었습니다.");
                 loadAllScores.run();
@@ -578,7 +581,11 @@ public class MainFrame extends JFrame {
             try {
                 String mId = memIdF.getText().trim();
                 String lCode = lecCodeF.getText().trim();
-                int scoreVal = Integer.parseInt(scoreF.getText().trim());
+                String scoreText = scoreF.getText().trim();
+
+                Integer scoreVal = scoreText.isEmpty()
+                        ? null
+                        : Integer.parseInt(scoreText);
 
                 scoreService.updateScore(mId, lCode, scoreVal);
 
