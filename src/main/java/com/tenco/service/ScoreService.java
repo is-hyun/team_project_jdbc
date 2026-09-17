@@ -26,10 +26,10 @@ public class ScoreService {
     }
 
     // 본인 성적 조회 (멤버 로그인 대상 전용)
-    public List<Scores> getScoresById(String memberId) throws SQLException{
+    public List<Scores> getScoresById(String memberId) {
         // 방어적 코드
         if (memberId == null || memberId.trim().isEmpty()) {
-            throw new SQLException("회원 ID가 올바르지 않습니다.");
+            throw new IllegalArgumentException("회원 ID가 올바르지 않습니다.");
         }
 
         return scoreDAO.getScoresById(memberId);
@@ -62,7 +62,7 @@ public class ScoreService {
     public void addScore(String memberId, String lectureCode) throws SQLException {
         if (memberId == null || memberId.trim().isEmpty() ||
                 lectureCode == null || lectureCode.trim().isEmpty()){
-            throw new SQLException("학생 아이디와 강의코드를 제대로 입력해주세요!");
+            throw new IllegalArgumentException("학생 아이디와 강의코드를 제대로 입력해주세요!");
         }
 
         Members member = membersDAO.searchMembersByMemberId(memberId);
@@ -81,7 +81,7 @@ public class ScoreService {
     public void deleteScore(String memberId, String lectureCode) throws SQLException {
         if (memberId == null || memberId.trim().isEmpty() ||
                 lectureCode == null || lectureCode.trim().isEmpty()){
-            throw new SQLException("학생 아이디와 강의코드를 제대로 입력해주세요!");
+            throw new IllegalArgumentException("학생 아이디와 강의코드를 제대로 입력해주세요!");
         }
 
         Members member = membersDAO.searchMembersByMemberId(memberId);

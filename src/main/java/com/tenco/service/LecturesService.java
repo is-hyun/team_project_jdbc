@@ -29,7 +29,7 @@ public class LecturesService {
     public boolean addLectures(Lectures lectures) throws SQLException {
         if (lectures.getLectureCode() == null || lectures.getLectureCode().trim().isEmpty() ||
         lectures.getLectureName() == null || lectures.getLectureName().trim().isEmpty()) {
-            throw new SQLException("강의코드와 강의명은 필수 입력 사항입니다");
+            throw new IllegalArgumentException("강의코드와 강의명은 필수 입력 사항입니다");
         }
         int result = lecturesDAO.addLectures(lectures);
         return result > 0;

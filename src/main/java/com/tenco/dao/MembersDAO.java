@@ -57,18 +57,19 @@ public class MembersDAO {
         try (Connection connection = DatabaseUtil.getConnection()) {
             PreparedStatement psmt = connection.prepareStatement(sql);
             psmt.setInt(1, id);
-            ResultSet rs = psmt.executeQuery();
+            try (ResultSet rs = psmt.executeQuery()) {
 
-            if (rs.next()) {
-                return Members.builder()
-                        .id(rs.getInt("id"))
-                        .memberId(rs.getString("member_id"))
-                        .name(rs.getString("name"))
-                        .phone(rs.getString("phone"))
-                        .major(rs.getString("major"))
-                        .grade(rs.getInt("grade"))
-                        .score(rs.getObject("score") == null ? null : rs.getInt("score"))
-                        .build();
+                if (rs.next()) {
+                    return Members.builder()
+                            .id(rs.getInt("id"))
+                            .memberId(rs.getString("member_id"))
+                            .name(rs.getString("name"))
+                            .phone(rs.getString("phone"))
+                            .major(rs.getString("major"))
+                            .grade(rs.getInt("grade"))
+                            .score(rs.getObject("score") == null ? null : rs.getInt("score"))
+                            .build();
+                }
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -94,22 +95,26 @@ public class MembersDAO {
                 group by m.id, m.member_id, m.admin, m.name, m.phone, m.major, m.grade;
                 """;
 
-        try (Connection connection = DatabaseUtil.getConnection()) {
-            PreparedStatement psmt = connection.prepareStatement(sql);
+        try (
+                Connection connection = DatabaseUtil.getConnection();
+                PreparedStatement psmt = connection.prepareStatement(sql)
+        ) {
             psmt.setString(1, memberId);
-            ResultSet rs = psmt.executeQuery();
 
-            if (rs.next()) {
-                return Members.builder()
-                        .id(rs.getInt("id"))
-                        .memberId(rs.getString("member_id"))
-                        .admin(rs.getBoolean("admin"))
-                        .name(rs.getString("name"))
-                        .phone(rs.getString("phone"))
-                        .major(rs.getString("major"))
-                        .grade(rs.getInt("grade"))
-                        .score(rs.getObject("score") == null ? null : rs.getInt("score"))
-                        .build();
+            try (ResultSet rs = psmt.executeQuery()) {
+
+                if (rs.next()) {
+                    return Members.builder()
+                            .id(rs.getInt("id"))
+                            .memberId(rs.getString("member_id"))
+                            .admin(rs.getBoolean("admin"))
+                            .name(rs.getString("name"))
+                            .phone(rs.getString("phone"))
+                            .major(rs.getString("major"))
+                            .grade(rs.getInt("grade"))
+                            .score(rs.getObject("score") == null ? null : rs.getInt("score"))
+                            .build();
+                }
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -127,18 +132,19 @@ public class MembersDAO {
                 values (?, ?, ?, ?, ?, ?);
                 """;
 
-        try (Connection connection = DatabaseUtil.getConnection()) {
-            try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-                pstmt.setString(1, members.getMemberId());
-                pstmt.setString(2, members.getPassword());
-                pstmt.setString(3, members.getName());
-                pstmt.setString(4, members.getPhone());
-                pstmt.setString(5, members.getMajor());
-                pstmt.setInt(6, members.getGrade());
+        try (
+                Connection connection = DatabaseUtil.getConnection();
+                PreparedStatement pstmt = connection.prepareStatement(sql)
+        ) {
+            pstmt.setString(1, members.getMemberId());
+            pstmt.setString(2, members.getPassword());
+            pstmt.setString(3, members.getName());
+            pstmt.setString(4, members.getPhone());
+            pstmt.setString(5, members.getMajor());
+            pstmt.setInt(6, members.getGrade());
 
-                rows = pstmt.executeUpdate();
-                System.out.println(rows + "행이 추가됨.");
-            }
+            rows = pstmt.executeUpdate();
+            System.out.println(rows + "행이 추가됨.");
 
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -162,20 +168,22 @@ public class MembersDAO {
                 group by m.id, m.member_id, m.name, m.phone, m.major, m.grade;
                 """;
 
-        try (Connection connection = DatabaseUtil.getConnection()) {
-            PreparedStatement psmt = connection.prepareStatement(sql);
-            ResultSet rs = psmt.executeQuery();
-
-            while (rs.next()) {
-                membersList.add(Members.builder()
-                        .id(rs.getInt("id"))
-                        .memberId(rs.getString("member_id"))
-                        .name(rs.getString("name"))
-                        .phone(rs.getString("phone"))
-                        .major(rs.getString("major"))
-                        .grade(rs.getInt("grade"))
-                        .score(rs.getObject("score") == null ? null : rs.getInt("score"))
-                        .build());
+        try (
+                Connection connection = DatabaseUtil.getConnection();
+                PreparedStatement psmt = connection.prepareStatement(sql)
+        ) {
+            try (ResultSet rs = psmt.executeQuery()) {
+                while (rs.next()) {
+                    membersList.add(Members.builder()
+                            .id(rs.getInt("id"))
+                            .memberId(rs.getString("member_id"))
+                            .name(rs.getString("name"))
+                            .phone(rs.getString("phone"))
+                            .major(rs.getString("major"))
+                            .grade(rs.getInt("grade"))
+                            .score(rs.getObject("score") == null ? null : rs.getInt("score"))
+                            .build());
+                }
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -202,22 +210,24 @@ public class MembersDAO {
                 group by m.id, m.member_id, m.name, m.phone, m.major, m.grade;
                 """;
 
-        try (Connection connection = DatabaseUtil.getConnection()) {
-            PreparedStatement pstmt = connection.prepareStatement(sql);
+        try (
+                Connection connection = DatabaseUtil.getConnection();
+                PreparedStatement pstmt = connection.prepareStatement(sql)
+        ) {
             pstmt.setString(1, name);
-            ResultSet rs = pstmt.executeQuery();
-
-            while (rs.next()) {
-                nameList.add(Members.builder()
-                        .id(rs.getInt("id"))
-                        .memberId(rs.getString("member_id"))
-                        .name(rs.getString("name"))
-                        .phone(rs.getString("phone"))
-                        .major(rs.getString("major"))
-                        .grade(rs.getInt("grade"))
-                        .score(rs.getObject("score") == null ? null : rs.getInt("score"))
-                        .build()
-                );
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    nameList.add(Members.builder()
+                            .id(rs.getInt("id"))
+                            .memberId(rs.getString("member_id"))
+                            .name(rs.getString("name"))
+                            .phone(rs.getString("phone"))
+                            .major(rs.getString("major"))
+                            .grade(rs.getInt("grade"))
+                            .score(rs.getObject("score") == null ? null : rs.getInt("score"))
+                            .build()
+                    );
+                }
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -234,9 +244,10 @@ public class MembersDAO {
                 where id = ?;
                 """;
 
-        try (Connection connection = DatabaseUtil.getConnection()) {
-            PreparedStatement pstmt = connection.prepareStatement(sql);
-
+        try (
+                Connection connection = DatabaseUtil.getConnection();
+                PreparedStatement pstmt = connection.prepareStatement(sql)
+        ) {
             pstmt.setString(1, newPassword);
             pstmt.setInt(2, id);
 
@@ -256,8 +267,10 @@ public class MembersDAO {
                 where id = ?;
                 """;
 
-        try (Connection connection = DatabaseUtil.getConnection()) {
-            PreparedStatement pstmt = connection.prepareStatement(sql);
+        try (
+                Connection connection = DatabaseUtil.getConnection();
+                PreparedStatement pstmt = connection.prepareStatement(sql)
+        ) {
 
             pstmt.setString(1, newMemberId);
             pstmt.setInt(2, id);
@@ -278,8 +291,10 @@ public class MembersDAO {
                 where id = ?;
                 """;
 
-        try (Connection connection = DatabaseUtil.getConnection()) {
-            PreparedStatement pstmt = connection.prepareStatement(sql);
+        try (
+                Connection connection = DatabaseUtil.getConnection();
+                PreparedStatement pstmt = connection.prepareStatement(sql)
+        ) {
 
             pstmt.setString(1, newName);
             pstmt.setInt(2, id);
@@ -300,8 +315,10 @@ public class MembersDAO {
                 where id = ?;
                 """;
 
-        try (Connection connection = DatabaseUtil.getConnection()) {
-            PreparedStatement pstmt = connection.prepareStatement(sql);
+        try (
+                Connection connection = DatabaseUtil.getConnection();
+                PreparedStatement pstmt = connection.prepareStatement(sql)
+        ) {
 
             pstmt.setString(1, newPhone);
             pstmt.setInt(2, id);
@@ -322,8 +339,10 @@ public class MembersDAO {
                 where id = ?;
                 """;
 
-        try (Connection connection = DatabaseUtil.getConnection()) {
-            PreparedStatement pstmt = connection.prepareStatement(sql);
+        try (
+                Connection connection = DatabaseUtil.getConnection();
+                PreparedStatement pstmt = connection.prepareStatement(sql)
+        ) {
 
             pstmt.setString(1, newMajor);
             pstmt.setInt(2, id);
@@ -344,8 +363,10 @@ public class MembersDAO {
                 where id = ?;
                 """;
 
-        try (Connection connection = DatabaseUtil.getConnection()) {
-            PreparedStatement pstmt = connection.prepareStatement(sql);
+        try (
+                Connection connection = DatabaseUtil.getConnection();
+                PreparedStatement pstmt = connection.prepareStatement(sql)
+        ) {
 
             pstmt.setInt(1, id);
             int rows = pstmt.executeUpdate();
