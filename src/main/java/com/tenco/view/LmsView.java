@@ -666,13 +666,31 @@ public class LmsView {
     private void addScore() throws SQLException {
         String memberId = readRequiredText("학생 아이디: ");
         String lectureCode = readRequiredText("강의코드: ");
+
+        // 성적 기입
+        Integer insertScore = null;
+        while (true) {
+            System.out.print("점수: ");
+            String input = scanner.nextLine().trim();
+            try {
+                if (input.isBlank()){
+                    break;
+                }
+                insertScore =  Integer.parseInt(input);
+                break;
+            } catch (NumberFormatException e) {
+                System.out.println("숫자를 입력해주세요.");
+            }
+        }
+
+
         for (Scores score : scoreService.getScoresById(memberId)) {
             if (lectureCode.equals(score.getLectureCode())) {
                 System.out.println("이미 등록된 성적입니다. 성적 수정 메뉴를 이용해주세요.");
                 return;
             }
         }
-        scoreService.addScore(memberId, lectureCode);
+        scoreService.addScore(memberId, lectureCode, insertScore);
         System.out.println("성적 항목이 추가되었습니다. 성적 수정 메뉴에서 점수를 입력해주세요.");
     }
 
