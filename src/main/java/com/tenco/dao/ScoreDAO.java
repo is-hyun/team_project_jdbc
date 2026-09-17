@@ -78,8 +78,6 @@ public class ScoreDAO {
 
     // 성적 수정
     public void updateScore(Members member, Lectures lecture, Integer score) throws SQLException {
-        Connection conn = DatabaseUtil.getConnection();
-
         String sql = """
                 update scores
                 set score = ?
@@ -87,18 +85,17 @@ public class ScoreDAO {
                 and lecture_id = ?
                 """;
 
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, score);
-            pstmt.setInt(2, member.getId());
-            pstmt.setInt(3, lecture.getId());
+        try (Connection conn = DatabaseUtil.getConnection()) {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setInt(1, score);
+                pstmt.setInt(2, member.getId());
+                pstmt.setInt(3, lecture.getId());
 
-            pstmt.executeUpdate();
-        } catch (SQLException e) {
-            throw new SQLException(e);
-        } finally {
-            conn.close();
+                pstmt.executeUpdate();
+            } catch (SQLException e) {
+                throw new SQLException(e);
+            }
         }
-
     }
 
     // 성적 추가

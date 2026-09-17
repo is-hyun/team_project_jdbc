@@ -37,7 +37,7 @@ public class RegistrationService {
     }
 
     // 수강 신청 전체조회
-    public List<Registration> getAllLectureList(Members loginUser) {
+    public List<Registration> getAllLectureList(Members loginUser) throws SQLException {
         if (loginUser == null || !loginUser.isAdmin()) {
             System.out.println("권한이 없습니다. 관리자만 전체 조회가 가능합니다.");
             return null;

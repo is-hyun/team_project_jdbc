@@ -127,7 +127,7 @@ public class LecturesDAO {
     }
 
     // 강의 삭제 기능 (관리자)
-    public int deleteLectures(String code) {
+    public int deleteLectures(String code) throws SQLException {
         int rows = 0;
         String deletesql = """
                 DELETE FROM lectures
@@ -139,10 +139,9 @@ public class LecturesDAO {
                 pstmt.setString(1, code);
                 rows = pstmt.executeUpdate();
             }
-        } catch (SQLIntegrityConstraintViolationException e) {
-            throw new IllegalStateException("수강 중인 학생이 있어 삭제할 수 없습니다.", e);
         } catch (SQLException e) {
-            throw new RuntimeException("강의 삭제 중 DB 오류 발생", e);
+            // TODO - 추후 토의 후 수정
+            throw new SQLException("데이터베이스 제약 조건으로 인해 삭제할 수 없습니다. (수강 중인 학생이 있을 수 있습니다.)");
         }
         return rows;
     }
