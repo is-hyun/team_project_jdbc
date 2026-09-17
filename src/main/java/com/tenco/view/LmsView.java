@@ -399,7 +399,7 @@ public class LmsView {
                 ? "강의 정보가 수정되었습니다." : "강의 정보를 수정하지 못했습니다.");
     }
 
-    private void deleteLecture() {
+    private void deleteLecture() throws SQLException {
         String code = readText("삭제할 강의코드: ");
         if (code.isEmpty()) {
             System.out.println("강의코드를 입력해주세요.");

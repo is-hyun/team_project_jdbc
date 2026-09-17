@@ -71,7 +71,7 @@ public class LecturesService {
     }
 
     // 5. 강의 삭제 (관리자메뉴)
-    public boolean deleteLectures(String code) {
+    public boolean deleteLectures(String code) throws SQLException {
         if (code == null || code.trim().isEmpty()) {
             return false;
         }

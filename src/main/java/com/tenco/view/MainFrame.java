@@ -477,11 +477,15 @@ public class MainFrame extends JFrame {
             String code = (String) model.getValueAt(row, 1);
             int confirm = JOptionPane.showConfirmDialog(this, "정말 이 강의를 삭제하시겠습니까?", "강의 삭제", JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
-                if (lecturesService.deleteLectures(code)) {
-                    JOptionPane.showMessageDialog(this, "삭제되었습니다.");
-                    loadAdminLectures.run();
-                } else {
-                    JOptionPane.showMessageDialog(this, "삭제 실패 (수강생 존재 등)");
+                try {
+                    if (lecturesService.deleteLectures(code)) {
+                        JOptionPane.showMessageDialog(this, "삭제되었습니다.");
+                        loadAdminLectures.run();
+                    } else {
+                        JOptionPane.showMessageDialog(this, "삭제 실패 (수강생 존재 등)");
+                    }
+                } catch (SQLException ex) {
+                    throw new RuntimeException(ex);
                 }
             }
         });

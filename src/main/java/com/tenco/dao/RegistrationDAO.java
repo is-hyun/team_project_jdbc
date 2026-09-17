@@ -260,7 +260,7 @@ public class RegistrationDAO {
 
 
     //전체 조회 (관리자)
-    public List<Registration> getAllRegistrations(Members members) {
+    public List<Registration> getAllRegistrations(Members members) throws SQLException {
         List<Registration> registrationList = new ArrayList<>();
 
         String searchAllSql = """
@@ -292,7 +292,7 @@ public class RegistrationDAO {
                 }
             }
         } catch (SQLException e) {
-            throw new RuntimeException("수강신청 목록 조회 중 DB 오류가 발생했습니다.", e);
+            throw new SQLException("조회 실패 : " + e);
         }
 
 
