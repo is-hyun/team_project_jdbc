@@ -64,7 +64,7 @@ public class LecturesService {
         if (!(newLecture.getCapacity() <= 0)) {
             exLecture.setCapacity(newLecture.getCapacity());
         }
-        exLecture.setAvailable(newLecture.isAvailable());
+        // exLecture.setAvailable(newLecture.isAvailable());
 
         int result = lecturesDAO.updateLecture(exLecture);
         return result > 0;

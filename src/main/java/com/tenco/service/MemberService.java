@@ -10,6 +10,14 @@ public class MemberService {
 
     private final MembersDAO membersDAO = new MembersDAO();
 
+    // !!!
+    public Members login(String memberId, String password) {
+        if (memberId == null || memberId.isBlank() || password == null || password.isEmpty()) {
+            throw new IllegalArgumentException("아이디와 비밀번호를 입력하세요.");
+        }
+        return membersDAO.login(memberId.trim(), password);
+    }
+
     // 본인 정보 조회 - PK
     public Members getSelfInfoById(int id) {
         if (id <= 0) {

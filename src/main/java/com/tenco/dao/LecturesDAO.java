@@ -8,12 +8,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class LecturesDAO {
+    // 쿼리
+    private static final String BASE_SELECT_SQL = """
+            SELECT l.id, l.lecture_code, l.lecture_name, l.professor, l.credit, l.capacity,
+                   (SELECT COUNT(*) FROM registration r WHERE r.lecture_id = l.id) AS enrolled
+            FROM lectures l
+            """;
+
+
     // 강의 목록 전체 조회
     public List<Lectures> getAllLectures() {
         List<Lectures> lecturesList = new ArrayList<>();
-        String llsql = """
-                SELECT * FROM lectures
-                ORDER BY id
+        String llsql = BASE_SELECT_SQL +
+                """
+                ORDER BY l.id
                 """;
 
         try (Connection connect = DatabaseUtil.getConnection()) {
@@ -34,8 +42,8 @@ public class LecturesDAO {
     public List<Lectures> searchLectures(String keyword) {
         List<Lectures> lecturesList = new ArrayList<>();
         // 1. 기본 sql 구조
-        String searchsql = """
-                SELECT * FROM lectures
+        String searchsql = BASE_SELECT_SQL +
+                """
                 WHERE 1 = 1
                 """;
         // 2. 검색 조건별 분기 (공란 / 카테고리별)
@@ -74,8 +82,8 @@ public class LecturesDAO {
     public int addLectures(Lectures lectures) {
         int rows = 0;
         String addsql = """
-                INSERT INTO lectures(lecture_code, lecture_name, professor, credit, capacity, available)
-                VALUES (?, ?, ?, ?, ?, ?)
+                INSERT INTO lectures(lecture_code, lecture_name, professor, credit, capacity)
+                VALUES (?, ?, ?, ?, ?)
                 """;
         try (Connection connect = DatabaseUtil.getConnection()) {
             try (PreparedStatement pstmt = connect.prepareStatement(addsql)) {
@@ -89,7 +97,6 @@ public class LecturesDAO {
                 }
                 pstmt.setInt(4, lectures.getCredit());
                 pstmt.setInt(5, lectures.getCapacity());
-                pstmt.setBoolean(6, lectures.isAvailable());
                 rows = pstmt.executeUpdate();
                 System.out.println("신규 강의 정보가 " + rows + " 건 추가되었습니다.");
             }
@@ -104,7 +111,7 @@ public class LecturesDAO {
         int rows = 0;
         String updatesql = """
                 UPDATE lectures
-                SET lecture_code = ?, lecture_name = ?, professor = ?, credit = ?, capacity = ?, available = ?
+                SET lecture_code = ?, lecture_name = ?, professor = ?, credit = ?, capacity = ?
                 WHERE id = ?
                 """;
 
@@ -115,8 +122,7 @@ public class LecturesDAO {
                 pstmt.setString(3, lectures.getProfessor());
                 pstmt.setInt(4, lectures.getCredit());
                 pstmt.setInt(5, lectures.getCapacity());
-                pstmt.setBoolean(6, lectures.isAvailable());
-                pstmt.setInt(7, lectures.getId());
+                pstmt.setInt(6, lectures.getId());
                 rows = pstmt.executeUpdate();
                 System.out.println("강의 정보가 수정되었습니다 | 강의ID : " + lectures.getId());
             }
@@ -148,7 +154,7 @@ public class LecturesDAO {
 
     // 강의 ID로 단건조회 (내부에서만 사용)
     public Lectures getLectureById(int id) {
-        String sql = "SELECT * FROM lectures WHERE id = ?";
+        String sql = BASE_SELECT_SQL + "WHERE id = ?";
 
         try (Connection connect = DatabaseUtil.getConnection()) {
             try (PreparedStatement pstmt = connect.prepareStatement(sql)) {
@@ -168,7 +174,7 @@ public class LecturesDAO {
 
     // 강의코드로 단건조회 (내부에서만 사용)
     public Lectures getLectureByCode(String code) {
-        String sql = "SELECT * FROM lectures WHERE lecture_code = ?";
+        String sql = BASE_SELECT_SQL + "WHERE lecture_code = ?";
 
         try (Connection connect = DatabaseUtil.getConnection()) {
             try (PreparedStatement pstmt = connect.prepareStatement(sql)) {
@@ -189,7 +195,7 @@ public class LecturesDAO {
     // 강의명(전체)로 단건조회 (내부에서만 사용)
     // !!! 완전히 동일한 강의명이 있다면 먼저 저장된 값이 나옴
     public Lectures getLectureByFullname(String name) {
-        String sql = "SELECT * FROM lectures WHERE lecture_name = ?";
+        String sql = BASE_SELECT_SQL + "WHERE lecture_name = ?";
 
         try (Connection connect = DatabaseUtil.getConnection()) {
             try (PreparedStatement pstmt = connect.prepareStatement(sql)) {
@@ -216,7 +222,8 @@ public class LecturesDAO {
         lectures.setProfessor(rs.getString("professor"));
         lectures.setCredit(rs.getInt("credit"));
         lectures.setCapacity(rs.getInt("capacity"));
-        lectures.setAvailable(rs.getBoolean("available"));
+        // lectures.setAvailable(rs.getBoolean("available"));
+        lectures.setEnrolled(rs.getInt("enrolled"));
         return lectures;
     }
 
