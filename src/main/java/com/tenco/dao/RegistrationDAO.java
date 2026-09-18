@@ -23,7 +23,10 @@ public class RegistrationDAO {
 
             // 1. [핵심] FOR UPDATE를 붙여서 다른 트랜잭션이 이 행을 동시에 수정/조회하지 못하도록 락을 겁니다.
             String chkSql = """
-                    SELECT available, capacity FROM lectures WHERE id = ? FOR UPDATE
+                    SELECT l.capacity,
+                                   (SELECT COUNT(*) FROM registration r WHERE r.lecture_id = l.id) AS enrolled
+                            FROM lectures l
+                            WHERE l.id = ? FOR UPDATE
                     """;
 
             int capacity = 0;
@@ -33,11 +36,13 @@ public class RegistrationDAO {
                     if (!rs.next()) {
                         throw new SQLException("존재하지 않는 강의입니다. 강의ID : " + lecId);
                     }
-                    if (!rs.getBoolean("available")) {
+                    capacity = rs.getInt("capacity");
+                    int enrolled = rs.getInt("enrolled");
+                    if (enrolled >= capacity) {
                         return false;
 //                        throw new SQLException("현재 정원이 초과 되었습니다.");
                     }
-                    capacity = rs.getInt("capacity");
+//                    capacity = rs.getInt("capacity");
                 }
             }
 
@@ -51,13 +56,7 @@ public class RegistrationDAO {
                     if (rs.next()) {
                         int currentCount = rs.getInt("cnt");
                         if (currentCount >= capacity) {
-                            // 정원이 찼다면 수강신청 불가능 상태로 업데이트 후 예외 발생
-                            String updateFullSql = "UPDATE lectures SET available = false WHERE id = ?";
-                            try (PreparedStatement updatePstmt = conn.prepareStatement(updateFullSql)) {
-                                updatePstmt.setString(1, lecId);
-                                updatePstmt.executeUpdate();
-                            }
-                            conn.commit(); // 상태 변경 반영
+
                             return false;
 //                            throw new SQLException("정원이 초과되어 수강신청할 수 없습니다.");
                         }

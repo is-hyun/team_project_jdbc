@@ -84,14 +84,16 @@ public class LmsView {
             loggedInMember = memberService.login(memberId, password);
             if (loggedInMember == null) {
                 System.out.println("아이디 또는 비밀번호가 일치하지 않습니다.");
+                return false;
             } else {
                 System.out.printf("%s님, %s로 로그인했습니다.%n", loggedInMember.getName(),
                         loggedInMember.isAdmin() ? "관리자" : "학생");
+                return true;
             }
         } catch (RuntimeException e) {
             System.out.println(e.getMessage());
+            return false;
         }
-        return true;
     }
 
     // =========================================================
@@ -213,8 +215,8 @@ public class LmsView {
                 System.out.printf("회원번호: %s | 학생: %s | ",
                         registration.getMemberId(), registration.getMemberName());
             }
-            System.out.printf("강의번호: %d | 강의코드: %s | 강의명: %s%n",
-                    registration.getLectureId(), registration.getLectureCode(), registration.getLectureName());
+            System.out.printf("강의코드: %s | 강의명: %s%n",
+                   registration.getLectureCode(), registration.getLectureName());
         }
     }
 
@@ -365,7 +367,7 @@ public class LmsView {
                 .professor(readText("교수명: "))
                 .credit(readPositiveInt("학점: "))
                 .capacity(readPositiveInt("정원: "))
-                .available(readAvailable(true, false))
+                // .available(readAvailable(true, false))
                 .build();
         System.out.println(lecturesService.addLectures(lecture)
                 ? "강의가 등록되었습니다." : "강의를 등록하지 못했습니다.");
@@ -393,7 +395,7 @@ public class LmsView {
                 .professor(readText("새 교수명 (삭제/미정 입력 가능): "))
                 .credit(readOptionalPositiveInt("새 학점: "))
                 .capacity(readOptionalPositiveInt("새 정원: "))
-                .available(readAvailable(selected.isAvailable(), true))
+                // .available(readAvailable(selected.isAvailable(), true))
                 .build();
         System.out.println(lecturesService.updateLectures(changes)
                 ? "강의 정보가 수정되었습니다." : "강의 정보를 수정하지 못했습니다.");

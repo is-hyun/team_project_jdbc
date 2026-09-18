@@ -14,5 +14,11 @@ public class Lectures {
     private String professor;
     private int credit;
     private int capacity;
-    private boolean available;
+    // private boolean available;
+
+    private int enrolled;
+
+    public boolean isAvailable() {
+        return this.capacity > this.enrolled;
+    }
 }

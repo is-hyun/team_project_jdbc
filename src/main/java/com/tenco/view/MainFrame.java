@@ -239,13 +239,9 @@ public class MainFrame extends JFrame {
                 }
             }
 
-            try {
-                List<Scores> scores = scoreService.getScoresById(loginUser.getMemberId());
-                for (Scores s : scores) {
-                    scoreModel.addRow(new Object[]{s.getId(), s.getMemberId(), s.getName(), s.getLectureCode(), s.getLectureName(), s.getScore()});
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
+            List<Scores> scores = scoreService.getScoresById(loginUser.getMemberId());
+            for (Scores s : scores) {
+                scoreModel.addRow(new Object[]{s.getId(), s.getMemberId(), s.getName(), s.getLectureCode(), s.getLectureName(), s.getScore()});
             }
         };
         loadMyData.run();
@@ -431,7 +427,7 @@ public class MainFrame extends JFrame {
                         .professor(profF.getText().trim())
                         .credit(Integer.parseInt(creditF.getText().trim()))
                         .capacity(Integer.parseInt(capF.getText().trim()))
-                        .available(true)
+                        // .available(true)
                         .build();
                 lecturesService.addLectures(l);
                 JOptionPane.showMessageDialog(this, "강의가 등록되었습니다.");
